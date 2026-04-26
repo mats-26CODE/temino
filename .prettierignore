@@ -1,0 +1,14 @@
+node_modules
+.next
+.turbo
+dist
+build
+out
+coverage
+*.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+next-env.d.ts
+tsconfig.tsbuildinfo
+public

@@ -1,0 +1,275 @@
+/**
+ * Lightweight translations dictionary (en/sw).
+ *
+ * - Use `t("key")` from `useTranslation()` to read a string.
+ * - Use `t("key", { name })` for variable interpolation.
+ * - Add new keys here and they become available everywhere.
+ */
+export const translations = {
+  en: {
+    languageLabel: "English",
+
+    // Navigation
+    "nav.brand": "Temino",
+    "nav.home": "Home",
+    "nav.search": "Search",
+    "nav.dashboard": "Dashboard",
+    "nav.login": "Login",
+    "nav.signup": "Sign Up",
+    "nav.logout": "Logout",
+    "nav.language": "Language",
+    "nav.recommendations": "Recommendations",
+    "nav.support": "Support",
+    "nav.help": "Help",
+    "nav.modes.buses": "Buses",
+    "nav.modes.flights": "Flights",
+    "nav.modes.places": "Places",
+    "nav.modes.soon": "Soon",
+
+    // Footer
+    "footer.aboutUs": "About us",
+    "footer.helpCenter": "Help center",
+    "footer.termsOfService": "Terms of service",
+    "footer.privacyPolicy": "Privacy policy",
+    "footer.copyright": "© {year} Temino. All rights reserved.",
+
+    // Landing
+    "landing.heroLabel": "Modern bus booking for Tanzania",
+    "landing.headline": "Find affordable bus tickets across Tanzania",
+    "landing.subheadline": "Compare operators, pick your seat, and pay securely with mobile money.",
+    "landing.heroBadge.rating": "4.8 ★ Customer rating",
+    "landing.heroBadge.ratingMeta": "10K+ happy travellers",
+    "landing.heroBadge.bookings": "20+ trusted operators",
+    "landing.heroBadge.bookingsMeta": "Across 18 cities",
+    "landing.cta": "Search trips",
+    "landing.search.from": "Origin",
+    "landing.search.to": "Destination",
+    "landing.search.date": "Date",
+    "landing.search.passengers": "Passengers",
+    "landing.search.fromPlaceholder": "Leaving from…",
+    "landing.search.toPlaceholder": "Going to…",
+    "landing.search.datePlaceholder": "Pick date",
+    "landing.search.button": "Search",
+    "landing.recommendations.eyebrow": "Recommended for you",
+    "landing.recommendations.title": "Next bus departures from {city}",
+    "landing.recommendations.titleFallback": "Next bus departures",
+    "landing.recommendations.detecting": "Detecting your location…",
+    "landing.recommendations.fromYourLocation":
+      "Picked up from your current location — change city below if you'd like.",
+    "landing.recommendations.fromCity": "Top picks departing from {city}.",
+    "landing.recommendations.denied":
+      "We couldn't read your location. Showing trips from {city} instead.",
+    "landing.recommendations.unsupported":
+      "Geolocation isn't available on this device. Showing trips from {city}.",
+    "landing.recommendations.useMyLocation": "Use my location",
+    "landing.recommendations.empty.title": "No trips here yet",
+    "landing.recommendations.empty.subtitle":
+      "We don't have departures from {city} right now. Try a different origin or jump back to search.",
+    "landing.recommendations.empty.cta": "Search trips",
+    "landing.recommendations.error": "Couldn't load recommendations",
+    "landing.recommendations.errorSubtitle": "Please try again in a moment.",
+    "landing.recommendations.dateToday": "Today",
+    "landing.recommendations.dateTomorrow": "Tomorrow",
+    "landing.recommendations.moreDates": "More dates",
+    "landing.tags.cheapest": "Cheapest",
+    "landing.tags.recommended": "Recommended",
+    "landing.tags.popular": "Popular",
+    "landing.tags.fastest": "Fastest",
+
+    // Search / Trips
+    "trips.title": "Available trips",
+    "trips.empty": "No trips found for this route. Try another date.",
+    "trips.from": "From",
+    "trips.duration": "Duration",
+    "trips.seatsLeft": "{count} seats left",
+    "trips.selectSeat": "Select seat",
+    "trips.bookNow": "Book now",
+    "trips.depart": "Depart",
+    "trips.arrive": "Arrive",
+    "trips.direct": "Direct",
+    "trips.includesFees": "Incl. tax & fees",
+
+    // Bus amenities
+    "bus.amenities.wifi": "Wi-Fi",
+    "bus.amenities.socket": "Socket",
+    "bus.amenities.usb": "USB",
+    "bus.amenities.ac": "AC",
+    "bus.amenities.meal": "Meal",
+    "bus.amenities.tv": "TV",
+    "bus.amenities.restroom": "Restroom",
+    "bus.amenities.reclining": "Reclining",
+
+    // Seat / Passenger / Payment
+    "seat.title": "Choose your seat",
+    "seat.legend.available": "Available",
+    "seat.legend.selected": "Selected",
+    "seat.legend.taken": "Taken",
+    "passenger.title": "Passenger details",
+    "passenger.fullName": "Full name",
+    "passenger.phone": "Phone number",
+    "passenger.email": "Email (optional)",
+    "passenger.continue": "Continue to payment",
+    "payment.title": "Payment",
+    "payment.summary": "Booking summary",
+    "payment.payNow": "Pay now",
+    "confirmation.title": "Ticket confirmed!",
+    "confirmation.subtitle": "Your booking has been received.",
+    "confirmation.cta": "View booking",
+
+    // Auth
+    "auth.welcomeBack": "Welcome back",
+    "auth.createAccount": "Create your account",
+    "auth.phoneLabel": "Phone number",
+    "auth.continue": "Continue",
+    "auth.otpTitle": "Verify your phone",
+    "auth.otpDesc": "We sent a 6-digit code to {phone}.",
+    "auth.otpResend": "Resend code",
+    "auth.otpResendIn": "Resend in {seconds}s",
+
+    // Dashboard
+    "dashboard.welcome": "Welcome, {name}",
+    "dashboard.upcomingTrips": "Upcoming trips",
+    "dashboard.pastTrips": "Past trips",
+    "dashboard.profile": "Profile",
+    "dashboard.settings": "Settings",
+  },
+
+  sw: {
+    languageLabel: "Kiswahili",
+
+    "nav.brand": "Temino",
+    "nav.home": "Mwanzo",
+    "nav.search": "Tafuta",
+    "nav.dashboard": "Dashibodi",
+    "nav.login": "Ingia",
+    "nav.signup": "Jiunge",
+    "nav.logout": "Toka",
+    "nav.language": "Lugha",
+    "nav.recommendations": "Mapendekezo",
+    "nav.support": "Msaada",
+    "nav.help": "Msaada",
+    "nav.modes.buses": "Mabasi",
+    "nav.modes.flights": "Ndege",
+    "nav.modes.places": "Maeneo",
+    "nav.modes.soon": "Hivi karibuni",
+
+    "footer.aboutUs": "Kuhusu sisi",
+    "footer.helpCenter": "Kituo cha msaada",
+    "footer.termsOfService": "Masharti ya matumizi",
+    "footer.privacyPolicy": "Sera ya faragha",
+    "footer.copyright": "© {year} Temino. Haki zote zimehifadhiwa.",
+
+    "landing.heroLabel": "Kuweka tikiti za mabasi Tanzania",
+    "landing.headline": "Pata tikiti za mabasi za bei nafuu Tanzania",
+    "landing.subheadline":
+      "Linganisha makampuni, chagua kiti, na lipa salama kwa M-Pesa au Tigopesa.",
+    "landing.heroBadge.rating": "4.8 ★ Kiwango cha wateja",
+    "landing.heroBadge.ratingMeta": "Watu 10K+ wameridhika",
+    "landing.heroBadge.bookings": "Makampuni 20+ yaliyoaminika",
+    "landing.heroBadge.bookingsMeta": "Katika miji 18",
+    "landing.cta": "Tafuta safari",
+    "landing.search.from": "Kutoka",
+    "landing.search.to": "Mpaka",
+    "landing.search.date": "Tarehe",
+    "landing.search.passengers": "Abiria",
+    "landing.search.fromPlaceholder": "Unaondoka wapi…",
+    "landing.search.toPlaceholder": "Unaenda wapi…",
+    "landing.search.datePlaceholder": "Chagua tarehe",
+    "landing.search.button": "Tafuta",
+    "landing.recommendations.eyebrow": "Mapendekezo kwako",
+    "landing.recommendations.title": "Safari zijazo kutoka {city}",
+    "landing.recommendations.titleFallback": "Safari zijazo",
+    "landing.recommendations.detecting": "Tunatambua eneo lako…",
+    "landing.recommendations.fromYourLocation":
+      "Tumetumia eneo lako — badilisha mji hapa chini ukipenda.",
+    "landing.recommendations.fromCity": "Safari maarufu zinazoondoka {city}.",
+    "landing.recommendations.denied":
+      "Hatukuweza kupata eneo lako. Tunaonyesha safari kutoka {city}.",
+    "landing.recommendations.unsupported":
+      "Kifaa hiki hakitumii eneo. Tunaonyesha safari kutoka {city}.",
+    "landing.recommendations.useMyLocation": "Tumia eneo langu",
+    "landing.recommendations.empty.title": "Hakuna safari kwa sasa",
+    "landing.recommendations.empty.subtitle":
+      "Hakuna safari kutoka {city} sasa hivi. Jaribu mji mwingine au rudi kwenye utafutaji.",
+    "landing.recommendations.empty.cta": "Tafuta safari",
+    "landing.recommendations.error": "Imeshindwa kupakia mapendekezo",
+    "landing.recommendations.errorSubtitle": "Tafadhali jaribu tena.",
+    "landing.recommendations.dateToday": "Leo",
+    "landing.recommendations.dateTomorrow": "Kesho",
+    "landing.recommendations.moreDates": "Tarehe zaidi",
+    "landing.tags.cheapest": "Nafuu",
+    "landing.tags.recommended": "Inapendekezwa",
+    "landing.tags.popular": "Maarufu",
+    "landing.tags.fastest": "Haraka",
+
+    "trips.title": "Safari zilizopo",
+    "trips.empty": "Hakuna safari kwenye njia hii. Jaribu tarehe nyingine.",
+    "trips.from": "Kutoka",
+    "trips.duration": "Muda",
+    "trips.seatsLeft": "Viti {count} vimebaki",
+    "trips.selectSeat": "Chagua kiti",
+    "trips.bookNow": "Hifadhi sasa",
+    "trips.depart": "Ondoka",
+    "trips.arrive": "Fika",
+    "trips.direct": "Moja kwa moja",
+    "trips.includesFees": "Pamoja na ushuru",
+
+    "bus.amenities.wifi": "Wi-Fi",
+    "bus.amenities.socket": "Soketi",
+    "bus.amenities.usb": "USB",
+    "bus.amenities.ac": "AC",
+    "bus.amenities.meal": "Chakula",
+    "bus.amenities.tv": "TV",
+    "bus.amenities.restroom": "Choo",
+    "bus.amenities.reclining": "Kiti chenye kulalia",
+
+    "seat.title": "Chagua kiti chako",
+    "seat.legend.available": "Inapatikana",
+    "seat.legend.selected": "Umechagua",
+    "seat.legend.taken": "Imechukuliwa",
+    "passenger.title": "Taarifa za abiria",
+    "passenger.fullName": "Jina kamili",
+    "passenger.phone": "Namba ya simu",
+    "passenger.email": "Barua pepe (si lazima)",
+    "passenger.continue": "Endelea kulipa",
+    "payment.title": "Malipo",
+    "payment.summary": "Muhtasari wa booking",
+    "payment.payNow": "Lipa sasa",
+    "confirmation.title": "Tikiti imethibitishwa!",
+    "confirmation.subtitle": "Booking yako imepokelewa.",
+    "confirmation.cta": "Angalia booking",
+
+    "auth.welcomeBack": "Karibu tena",
+    "auth.createAccount": "Fungua akaunti",
+    "auth.phoneLabel": "Namba ya simu",
+    "auth.continue": "Endelea",
+    "auth.otpTitle": "Thibitisha simu yako",
+    "auth.otpDesc": "Tumetuma namba 6 kwenye {phone}.",
+    "auth.otpResend": "Tuma tena",
+    "auth.otpResendIn": "Tuma tena baada ya {seconds}s",
+
+    "dashboard.welcome": "Karibu, {name}",
+    "dashboard.upcomingTrips": "Safari zijazo",
+    "dashboard.pastTrips": "Safari zilizopita",
+    "dashboard.profile": "Wasifu",
+    "dashboard.settings": "Mipangilio",
+  },
+} as const;
+
+export type Language = keyof typeof translations;
+export const defaultLanguage: Language = "en";
+
+/**
+ * Translate a key for a given language. Replaces {var} placeholders.
+ */
+export const t = (
+  language: Language,
+  key: string,
+  vars?: Record<string, string | number>,
+): string => {
+  const dict = translations[language] ?? translations[defaultLanguage];
+  const fallback = translations[defaultLanguage] as Record<string, string>;
+  const raw = (dict as unknown as Record<string, string>)[key] ?? fallback[key] ?? key;
+  if (!vars) return raw;
+  return Object.entries(vars).reduce((acc, [k, v]) => acc.replaceAll(`{${k}}`, String(v)), raw);
+};
