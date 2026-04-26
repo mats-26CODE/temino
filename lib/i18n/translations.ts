@@ -20,7 +20,7 @@ export const translations = {
     "nav.language": "Language",
     "nav.recommendations": "Recommendations",
     "nav.support": "Support",
-    "nav.help": "Help",
+    "nav.help": "Support",
     "nav.modes.buses": "Buses",
     "nav.modes.flights": "Flights",
     "nav.modes.places": "Places",
@@ -104,6 +104,9 @@ export const translations = {
 
     // Seat / Passenger / Payment
     "seat.title": "Choose your seat",
+    "seat.backToTrips": "Back to trips",
+    "seat.busInfoLabel": "Bus & operator",
+    "seat.tripInfoLabel": "Journey",
     "seat.legend.available": "Available",
     "seat.legend.selected": "Selected",
     "seat.legend.taken": "Taken",
@@ -162,8 +165,8 @@ export const translations = {
     "footer.privacyPolicy": "Sera ya faragha",
     "footer.copyright": "© {year} Temino. Haki zote zimehifadhiwa.",
 
-    "landing.heroLabel": "Kuweka tikiti za mabasi Tanzania",
-    "landing.headline": "Pata tikiti za mabasi za bei nafuu Tanzania",
+    "landing.heroLabel": "Kuweka tiketi za mabasi Tanzania",
+    "landing.headline": "Pata tiketi za mabasi za bei nafuu Tanzania",
     "landing.subheadline":
       "Linganisha makampuni, chagua kiti, na lipa salama kwa M-Pesa au Tigopesa.",
     "landing.heroBadge.rating": "4.8 ★ Kiwango cha wateja",
@@ -230,6 +233,9 @@ export const translations = {
     "bus.amenities.reclining": "Kiti chenye kulalia",
 
     "seat.title": "Chagua kiti chako",
+    "seat.backToTrips": "Rudi tafutaji",
+    "seat.busInfoLabel": "Mwendeshaji & basi",
+    "seat.tripInfoLabel": "Safari",
     "seat.legend.available": "Inapatikana",
     "seat.legend.selected": "Umechagua",
     "seat.legend.taken": "Imechukuliwa",
@@ -241,7 +247,7 @@ export const translations = {
     "payment.title": "Malipo",
     "payment.summary": "Muhtasari wa booking",
     "payment.payNow": "Lipa sasa",
-    "confirmation.title": "Tikiti imethibitishwa!",
+    "confirmation.title": "Tiketi imethibitishwa!",
     "confirmation.subtitle": "Booking yako imepokelewa.",
     "confirmation.cta": "Angalia booking",
 

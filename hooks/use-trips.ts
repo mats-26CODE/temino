@@ -7,6 +7,11 @@ import {
   getRecommendedTripsByOrigin,
   getSearchTripsFromMocks,
 } from "@/lib/mocks/trips";
+import {
+  apiTripSeatToSeat,
+  buildMockSeatsForTrip,
+  getMockTripWithSeatsById,
+} from "@/lib/mocks/trip-seats";
 
 export const TRIPS_QUERY_KEY = ["trips"] as const;
 
@@ -117,18 +122,46 @@ export const useTrips = () =>
   });
 
 /**
- * GET /api/trips/{id}/ — used on the trip detail / seat-selection page.
+ * GET /api/trips/{id}/ + GET /api/trips/{id}/seats/
  *
- * Falls back to filtering the search results client-side if the dedicated
- * endpoint is not available yet (we can keep both code paths working).
+ * Used on the seat-selection page. Seats come from the list endpoint
+ * (`TripSeatListAPIView` in `temino-api`). If the trip or seats request fails,
+ * or the seats list is empty, we attach a mock grid from
+ * `lib/mocks/trip-seats.ts` (same 1A–4D layout as the backend).
  */
 export const useTrip = (tripId: string | null | undefined) =>
   useQuery<Trip>({
     queryKey: [...TRIPS_QUERY_KEY, "detail", tripId],
     enabled: Boolean(tripId),
     queryFn: async () => {
-      const { data } = await api.get<Trip>(`/api/trips/${tripId}/`);
-      return withAmenitiesFromClass(data);
+      if (!tripId) throw new Error("Missing trip id");
+
+      const mergeSeats = async (trip: Trip): Promise<Trip> => {
+        const enriched = withAmenitiesFromClass(trip);
+        let seats: Seat[] = [];
+        try {
+          const { data } = await api.get<TripSeatApi[] | ApiPaginated<TripSeatApi>>(
+            `/api/trips/${tripId}/seats/`,
+          );
+          const raw = Array.isArray(data) ? data : (data?.results ?? []);
+          seats = raw
+            .filter((s) => s.is_active !== false)
+            .map((s) => apiTripSeatToSeat(s));
+        } catch {
+          // Backend down or seats route not deployed.
+        }
+        if (seats.length === 0) {
+          seats = buildMockSeatsForTrip(enriched);
+        }
+        return { ...enriched, seats };
+      };
+
+      try {
+        const { data } = await api.get<Trip>(`/api/trips/${tripId}/`);
+        return mergeSeats(data);
+      } catch {
+        return withAmenitiesFromClass(getMockTripWithSeatsById(tripId));
+      }
     },
   });
 

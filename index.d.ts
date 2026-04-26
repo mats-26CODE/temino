@@ -119,6 +119,17 @@ interface Seat {
   price?: number;
 }
 
+/** Raw `trips.TripSeat` row from Django REST (`TripSeatSerializer`). */
+interface TripSeatApi {
+  id: string;
+  trip: string;
+  seat_number: string;
+  status: SeatStatus;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 type TripStatus =
   | "scheduled"
   | "boarding"

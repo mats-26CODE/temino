@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, LogOut, Bus, Plane, MapPin } from "lucide-react";
+import { Menu, LogOut, Bus, Plane } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,7 @@ import Logo from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
 
-type ModeKey = "buses" | "flights" | "places";
+type ModeKey = "buses" | "flights";
 
 interface ModeDef {
   key: ModeKey;
@@ -29,7 +29,6 @@ interface ModeDef {
 const MODES: ModeDef[] = [
   { key: "buses", icon: Bus, active: true },
   { key: "flights", icon: Plane, soon: true },
-  // { key: "places", icon: MapPin, soon: true },
 ];
 
 const NavBar = () => {

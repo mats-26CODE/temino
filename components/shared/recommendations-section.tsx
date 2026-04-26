@@ -218,7 +218,7 @@ export const RecommendationsSection = () => {
 
       {/* Body */}
       {isLoading || geo.status === "requesting" ? (
-        <div className="flex flex-col gap-3">
+        <div className="mb-4 flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
             <RecommendationCardSkeleton key={i} />
           ))}

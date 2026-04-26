@@ -40,9 +40,9 @@ export const SeatMap = ({ seats, selectedSeatId, onSelect, columns = 4 }: SeatMa
   const aisleAfter = Math.floor(columns / 2);
 
   return (
-    <Card className="mx-auto max-w-md gap-0 rounded-2xl p-6">
-      {/* Driver */}
-      <div className="mb-6 flex justify-end">
+    <Card className="w-full max-w-md gap-0 self-start rounded-2xl p-6">
+      {/* Driver — front of bus; keep wheel on the right, align block to the start of the column (no mx-auto). */}
+      <div className="mb-6 flex w-full min-w-0 justify-end">
         <div
           className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-md"
           title="Driver"
@@ -51,10 +51,13 @@ export const SeatMap = ({ seats, selectedSeatId, onSelect, columns = 4 }: SeatMa
         </div>
       </div>
 
-      {/* Seats */}
+      {/* Seats — row width matches the driver/seat block; no extra left gutter */}
       <div className="space-y-2">
         {rows.map((row, rowIdx) => (
-          <div key={rowIdx} className="flex items-center justify-center gap-1.5">
+          <div
+            key={rowIdx}
+            className="flex w-full min-w-0 items-center justify-center gap-1.5"
+          >
             {row.map((seat, colIdx) => {
               const isSelected = seat.id === selectedSeatId;
               const isTaken = seat.status !== "available";
@@ -85,8 +88,8 @@ export const SeatMap = ({ seats, selectedSeatId, onSelect, columns = 4 }: SeatMa
         ))}
       </div>
 
-      {/* Legend */}
-      <div className="border-border mt-6 flex flex-wrap items-center justify-center gap-4 border-t pt-4 text-xs">
+      {/* Legend — left-aligned to match page header / column start */}
+      <div className="border-border mt-6 flex w-full min-w-0 flex-wrap items-center justify-start gap-x-4 gap-y-2 border-t pt-4 text-xs">
         <div className="flex items-center gap-1.5">
           <div className="border-border size-4 rounded border" />
           <span className="text-muted-foreground">{t("seat.legend.available")}</span>
