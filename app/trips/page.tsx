@@ -1,12 +1,14 @@
 "use client";
 
 import { Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import dayjs from "dayjs";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SearchBar } from "@/components/shared/search-bar";
-import { TripCard } from "@/components/shared/trip-card";
+import { TripCard, TripCardSkeleton } from "@/components/shared/trip-card";
 import { useSearchTrips } from "@/hooks/use-trips";
 import { useTranslation } from "@/hooks/use-translation";
 import { useBookingStore } from "@/lib/stores/booking-store";
@@ -45,6 +47,14 @@ const TripsContent = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 md:max-w-6xl md:py-12">
+      <div className="mb-4">
+        <Button variant="outline" size="sm" className="gap-1.5 rounded-full" asChild>
+          <Link href="/">
+            <ArrowLeft className="size-4" />
+            {t("trips.backToHome")}
+          </Link>
+        </Button>
+      </div>
       <div className="mb-6">
         <SearchBar variant="compact" />
       </div>
@@ -61,11 +71,7 @@ const TripsContent = () => {
       {isLoading && (
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-5">
-                <Skeleton className="h-20 w-full" />
-              </CardContent>
-            </Card>
+            <TripCardSkeleton key={i} />
           ))}
         </div>
       )}

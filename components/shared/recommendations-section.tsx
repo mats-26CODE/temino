@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dayjs from "dayjs";
 import { ArrowRight, Locate, MapPin, MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -21,7 +20,11 @@ import { useRecommendedTrips } from "@/hooks/use-trips";
 import { useTranslation } from "@/hooks/use-translation";
 import { TZ_CITIES } from "@/constants/values";
 import { cn } from "@/lib/utils";
-import { RecommendationCard, type RecommendationTag } from "./recommendation-card";
+import {
+  RecommendationCard,
+  RecommendationCardSkeleton,
+  type RecommendationTag,
+} from "./recommendation-card";
 
 const FALLBACK_CITY = "Dar es Salaam";
 const VISIBLE_DATE_PILLS = 7; // Today + next 6 days
@@ -33,6 +36,8 @@ const tripPrice = (t: Trip): number => {
 
 const tripDurationMs = (t: Trip): number => dayjs(t.arrival_time).diff(dayjs(t.departure_time));
 
+const tripOperatorRating = (t: Trip): number => (t.bus?.operator ?? t.operator)?.rating ?? 0;
+
 const pickTags = (trips: Trip[]): Map<string, RecommendationTag> => {
   const tags = new Map<string, RecommendationTag>();
   if (trips.length === 0) return tags;
@@ -43,9 +48,7 @@ const pickTags = (trips: Trip[]): Map<string, RecommendationTag> => {
   const fastest = [...trips].sort((a, b) => tripDurationMs(a) - tripDurationMs(b))[0];
   if (fastest && !tags.has(fastest.id)) tags.set(fastest.id, "fastest");
 
-  const recommended = [...trips].sort(
-    (a, b) => (b.bus.operator.rating ?? 0) - (a.bus.operator.rating ?? 0),
-  )[0];
+  const recommended = [...trips].sort((a, b) => tripOperatorRating(b) - tripOperatorRating(a))[0];
   if (recommended && !tags.has(recommended.id)) tags.set(recommended.id, "recommended");
 
   return tags;
@@ -122,8 +125,14 @@ export const RecommendationsSection = () => {
               : t("landing.recommendations.fromCity", { city: activeCity })}
 
           <Select value={activeCity} onValueChange={(v) => setOverrideCity(v)}>
-            <SelectTrigger className="bg-background h-7 rounded-full border-dashed px-3 text-xs">
-              <MapPin className="text-primary size-3" />
+            <SelectTrigger
+              size="sm"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "max-w-[min(18rem,85vw)] gap-1.5 rounded-lg border-gray-200 px-2.5 py-4.5 text-xs font-semibold tracking-tight shadow-xs md:px-3 md:text-sm",
+              )}
+            >
+              <MapPin className="text-primary size-3.5 shrink-0" aria-hidden />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -166,7 +175,7 @@ export const RecommendationsSection = () => {
                 setSelectedDate(d.toDate());
               }}
               className={cn(
-                "rounded-full border px-4 py-2 text-sm font-semibold tracking-tight transition-all",
+                buttonVariants({ variant: "outline", size: "sm" }),
                 isActive
                   ? "bg-card border-primary text-foreground shadow-sm"
                   : "bg-muted/60 text-foreground/80 hover:bg-muted hover:text-foreground border-transparent",
@@ -179,10 +188,12 @@ export const RecommendationsSection = () => {
 
         <Popover>
           <PopoverTrigger asChild>
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold tracking-tight transition-all",
+                "gap-1.5 font-semibold tracking-tight",
                 customDate
                   ? "bg-card border-primary text-foreground shadow-sm"
                   : "bg-muted/60 text-foreground/80 hover:bg-muted hover:text-foreground border-transparent",
@@ -192,7 +203,7 @@ export const RecommendationsSection = () => {
               {customDate
                 ? dayjs(customDate).format("ddd, MMM D")
                 : t("landing.recommendations.moreDates")}
-            </button>
+            </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="center">
             <Calendar
@@ -208,8 +219,8 @@ export const RecommendationsSection = () => {
       {/* Body */}
       {isLoading || geo.status === "requesting" ? (
         <div className="flex flex-col gap-3">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-2xl md:h-24" />
+          {[0, 1, 2].map((i) => (
+            <RecommendationCardSkeleton key={i} />
           ))}
         </div>
       ) : null}

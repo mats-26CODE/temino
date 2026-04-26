@@ -131,6 +131,8 @@ type TripStatus =
 interface Trip {
   id: string;
   trip_code: string;
+  /** From API when `route` is serialized as an id only (see `resolveTripStopLabels`). */
+  route_code?: string;
   route: Route;
   operator: Operator;
   bus: Bus;

@@ -2,6 +2,7 @@ import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { MOCK_ROUTES } from "@/lib/mocks/trips";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -271,6 +272,69 @@ export const formatTripDuration = (departureIso: string, arrivalIso: string): st
 export const buildRouteCode = (origin: string, destination: string): string => {
   const tokenize = (s: string) => s.trim().split(/\s+/)[0]?.slice(0, 3).toUpperCase() ?? "";
   return `${tokenize(origin)}-${tokenize(destination)}`;
+};
+
+/**
+ * Labels under departure / arrival times on cards. Uses nested stations from the
+ * API when present; otherwise maps `route_code` or origin/destination cities to
+ * `MOCK_ROUTES` so the live API (which often omits `origin_station`) still shows
+ * terminal names in dev.
+ *
+ * Django `TripSerializer` usually sends `route` as a PK (string) and puts
+ * `route_code` on the trip root — we must read both shapes.
+ */
+export const resolveTripStopLabels = (
+  trip: Trip,
+): { origin: string; destination: string } => {
+  // DRF often serializes `route` as a PK string; mocks use a full `Route` object.
+  const rawRoute = trip.route as unknown as Route | string;
+  const nested =
+    rawRoute && typeof rawRoute === "object" && !Array.isArray(rawRoute)
+      ? (rawRoute as Route)
+      : null;
+
+  const tripRouteCode = trip.route_code?.trim() ?? "";
+
+  const fromApiOrigin = nested?.origin_station?.name?.trim();
+  const fromApiDest = nested?.destination_station?.name?.trim();
+  if (fromApiOrigin && fromApiDest) {
+    return { origin: fromApiOrigin, destination: fromApiDest };
+  }
+
+  const codeRaw =
+    tripRouteCode ||
+    (nested?.route_code ?? nested?.code ?? "").toString().trim();
+  if (codeRaw) {
+    const upper = codeRaw.toUpperCase();
+    const mock = MOCK_ROUTES.find(
+      (m) => m.route_code.toUpperCase() === upper || (m.code && m.code.toUpperCase() === upper),
+    );
+    if (mock) {
+      return {
+        origin: fromApiOrigin ?? mock.origin_station.name,
+        destination: fromApiDest ?? mock.destination_station.name,
+      };
+    }
+  }
+
+  const originCity =
+    nested && typeof nested.origin === "string" ? nested.origin.trim() : "";
+  const destCity =
+    nested && typeof nested.destination === "string" ? nested.destination.trim() : "";
+  if (originCity && destCity) {
+    const mock = MOCK_ROUTES.find((m) => m.origin === originCity && m.destination === destCity);
+    if (mock) {
+      return {
+        origin: fromApiOrigin ?? mock.origin_station.name,
+        destination: fromApiDest ?? mock.destination_station.name,
+      };
+    }
+  }
+
+  return {
+    origin: fromApiOrigin || originCity || "",
+    destination: fromApiDest || destCity || "",
+  };
 };
 
 const toRadians = (deg: number) => (deg * Math.PI) / 180;

@@ -5,6 +5,7 @@ import { Bus as BusIcon, Calendar, MapPin, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/helpers/helpers";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface BookingSummaryProps {
   trip: Trip;
@@ -18,6 +19,11 @@ interface BookingSummaryProps {
  * confirmation screens to show the user what they're paying for.
  */
 export const BookingSummary = ({ trip, seat, passenger, className }: BookingSummaryProps) => {
+  const { t } = useTranslation();
+  const operatorName =
+    trip.bus?.operator?.name ?? trip.operator?.name ?? t("trips.unknownOperator");
+  const busClass = trip.bus?.bus_class ?? trip.bus?.bus_type ?? "standard";
+  const plate = trip.bus?.plate_number ?? "—";
   const departure = dayjs(trip.departure_time);
   const arrival = dayjs(trip.arrival_time);
   const price =
@@ -36,9 +42,9 @@ export const BookingSummary = ({ trip, seat, passenger, className }: BookingSumm
         <div className="flex items-start gap-3">
           <BusIcon className="text-muted-foreground mt-0.5 size-4 shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="text-foreground font-medium">{trip.bus.operator.name}</p>
+            <p className="text-foreground font-medium">{operatorName}</p>
             <p className="text-muted-foreground text-xs capitalize">
-              {trip.bus.bus_class ?? "Standard"} · {trip.bus.plate_number}
+              {busClass} · {plate}
             </p>
           </div>
         </div>

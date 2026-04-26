@@ -78,11 +78,13 @@ export const translations = {
 
     // Search / Trips
     "trips.title": "Available trips",
+    "trips.backToHome": "Back to home",
     "trips.empty": "No trips found for this route. Try another date.",
     "trips.from": "From",
     "trips.duration": "Duration",
     "trips.seatsLeft": "{count} seats left",
     "trips.selectSeat": "Select seat",
+    "trips.unknownOperator": "Operator",
     "trips.bookNow": "Book now",
     "trips.depart": "Depart",
     "trips.arrive": "Arrive",
@@ -203,11 +205,13 @@ export const translations = {
     "landing.tags.fastest": "Haraka",
 
     "trips.title": "Safari zilizopo",
+    "trips.backToHome": "Rudi mwanzo",
     "trips.empty": "Hakuna safari kwenye njia hii. Jaribu tarehe nyingine.",
     "trips.from": "Kutoka",
     "trips.duration": "Muda",
     "trips.seatsLeft": "Viti {count} vimebaki",
     "trips.selectSeat": "Chagua kiti",
+    "trips.unknownOperator": "Mwendeshaji",
     "trips.bookNow": "Hifadhi sasa",
     "trips.depart": "Ondoka",
     "trips.arrive": "Fika",

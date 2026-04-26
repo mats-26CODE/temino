@@ -30,11 +30,16 @@ const RootLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+      className={`${figtree.variable} ${pacifico.variable}`}
+    >
       <head>
         <meta name="apple-mobile-web-app-title" content={APP_NAME} />
       </head>
-      <body className={`${figtree.variable} ${pacifico.variable} antialiased`}>
+      <body className="antialiased" suppressHydrationWarning>
         <script
           dangerouslySetInnerHTML={{
             __html: `

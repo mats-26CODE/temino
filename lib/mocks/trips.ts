@@ -100,7 +100,7 @@ const station = (id: string, city: string, name: string, lat: number, lng: numbe
   name,
   city: {
     id: `city-${id}`,
-    name,
+    name: city,
     region: { id: `region-${id}`, name: city, country: { id: "tz", name: TZ, code: "TZ" } },
   },
   latitude: lat,
@@ -257,6 +257,10 @@ type TripSeed = {
   basePrice: number;
   available_seats: number;
   status?: TripStatus;
+  /** Terminal / platform line under departure time on recommendation cards */
+  originTerminal?: string;
+  /** Terminal / platform line under arrival time on recommendation cards */
+  destinationTerminal?: string;
 };
 
 const TRIP_SEEDS: TripSeed[] = [
@@ -269,6 +273,8 @@ const TRIP_SEEDS: TripSeed[] = [
     departOffsetHours: 6,
     basePrice: 45000,
     available_seats: 12,
+    originTerminal: "Ubungo Bus Terminal — Platform 1",
+    destinationTerminal: "Arusha Main Terminal — Bay 3",
   },
   {
     id: "trip-002",
@@ -278,12 +284,16 @@ const TRIP_SEEDS: TripSeed[] = [
     departOffsetHours: 7,
     basePrice: 65000,
     available_seats: 4,
+    originTerminal: "Ubungo Bus Terminal — Platform 4",
+    destinationTerminal: "Arusha Main Terminal — Bay 1",
   },
   {
     id: "trip-003",
     trip_code: "DEX-DAR-DOM-0900",
     routeCode: "DAR-DOM",
     busId: "bus-009",
+    originTerminal: "Ubungo Bus Terminal — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 9,
     basePrice: 32000,
     available_seats: 18,
@@ -293,6 +303,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "SHB-DAR-MBE-1830",
     routeCode: "DAR-MBE",
     busId: "bus-003",
+    originTerminal: "Mwanjelwa Bus Terminal — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 18.5,
     basePrice: 38000,
     available_seats: 24,
@@ -302,6 +314,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "SUM-DAR-MWZ-2100",
     routeCode: "DAR-MWZ",
     busId: "bus-007",
+    originTerminal: "Buzuruga Bus Terminal — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 21,
     basePrice: 60000,
     available_seats: 30,
@@ -311,6 +325,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "ABD-DAR-MOR-1100",
     routeCode: "DAR-MOR",
     busId: "bus-011",
+    originTerminal: "Msamvu Bus Terminal — Platform 1",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 4",
     departOffsetHours: 11,
     basePrice: 12000,
     available_seats: 22,
@@ -320,6 +336,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "RCH-DAR-IRI-0830",
     routeCode: "DAR-IRI",
     busId: "bus-006",
+    originTerminal: "Iringa Bus Stand — Platform 1",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 4",
     departOffsetHours: 8.5,
     basePrice: 35000,
     available_seats: 9,
@@ -329,6 +347,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "DEX-DAR-TAN-1300",
     routeCode: "DAR-TAN",
     busId: "bus-010",
+    originTerminal: "Ubungo Bus Terminal — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 13,
     basePrice: 22000,
     available_seats: 14,
@@ -340,6 +360,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "KEX-ARU-DAR-0700",
     routeCode: "ARU-DAR",
     busId: "bus-002",
+    originTerminal: "Arusha Main Terminal — Bay 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 7,
     basePrice: 45000,
     available_seats: 19,
@@ -349,6 +371,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "RCH-ARU-DAR-2030",
     routeCode: "ARU-DAR",
     busId: "bus-005",
+    originTerminal: "Arusha Main Terminal — Bay 3",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 4",
     departOffsetHours: 20.5,
     basePrice: 60000,
     available_seats: 6,
@@ -358,6 +382,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "SHB-ARU-MOS-1000",
     routeCode: "ARU-MOS",
     busId: "bus-004",
+    originTerminal: "Moshi Bus Terminal — Platform 1",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 10,
     basePrice: 8000,
     available_seats: 26,
@@ -367,6 +393,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "KEX-ARU-MWZ-0500",
     routeCode: "ARU-MWZ",
     busId: "bus-001",
+    originTerminal: "Arusha Main Terminal — Bay 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 2",
     departOffsetHours: 29,
     basePrice: 55000,
     available_seats: 11,
@@ -387,6 +415,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "SHB-DOM-MWZ-1900",
     routeCode: "DOM-MWZ",
     busId: "bus-003",
+    originTerminal: "Dodoma Bus Terminal — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 4",
     departOffsetHours: 19,
     basePrice: 42000,
     available_seats: 28,
@@ -398,6 +428,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "SUM-MWZ-DAR-1700",
     routeCode: "MWZ-DAR",
     busId: "bus-007",
+    originTerminal: "Buzuruga Bus Terminal — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 17,
     basePrice: 60000,
     available_seats: 32,
@@ -407,6 +439,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "KEX-MWZ-DAR-0600",
     routeCode: "MWZ-DAR",
     busId: "bus-002",
+    originTerminal: "Buzuruga Bus Terminal — Platform 1",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 2",
     departOffsetHours: 30,
     basePrice: 65000,
     available_seats: 8,
@@ -418,6 +452,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "SHB-MBE-DAR-1830",
     routeCode: "MBE-DAR",
     busId: "bus-004",
+    originTerminal: "Mwanjelwa Bus Terminal — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 18.5,
     basePrice: 38000,
     available_seats: 21,
@@ -438,6 +474,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "RCH-IRI-DAR-0830",
     routeCode: "IRI-DAR",
     busId: "bus-006",
+    originTerminal: "Iringa Bus Stand — Platform 1",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 4",
     departOffsetHours: 8.5,
     basePrice: 35000,
     available_seats: 13,
@@ -447,6 +485,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "SHB-IRI-DAR-2100",
     routeCode: "IRI-DAR",
     busId: "bus-003",
+    originTerminal: "Iringa Bus Stand — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 1",
     departOffsetHours: 21,
     basePrice: 28000,
     available_seats: 30,
@@ -458,6 +498,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "ABD-MOR-DAR-0700",
     routeCode: "MOR-DAR",
     busId: "bus-011",
+    originTerminal: "Msamvu Bus Terminal — Platform 1",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 4",
     departOffsetHours: 7,
     basePrice: 12000,
     available_seats: 20,
@@ -467,6 +509,8 @@ const TRIP_SEEDS: TripSeed[] = [
     trip_code: "ABD-MOR-DAR-1500",
     routeCode: "MOR-DAR",
     busId: "bus-012",
+    originTerminal: "Msamvu Bus Terminal — Platform 2",
+    destinationTerminal: "Ubungo Bus Terminal — Platform 3",
     departOffsetHours: 15,
     basePrice: 14000,
     available_seats: 8,
@@ -479,10 +523,21 @@ const TRIP_SEEDS: TripSeed[] = [
 export const buildMockTrips = (): Trip[] => {
   const now = dayjs();
   return TRIP_SEEDS.map((seed) => {
-    const route = routeByCode(seed.routeCode);
+    const baseRoute = routeByCode(seed.routeCode);
     const bus = busById(seed.busId);
     const departure = now.add(seed.departOffsetHours, "hour").startOf("hour");
-    const arrival = departure.add(route.estimated_duration_minutes, "minute");
+    const arrival = departure.add(baseRoute.estimated_duration_minutes, "minute");
+    const route: Route = {
+      ...baseRoute,
+      origin_station: {
+        ...baseRoute.origin_station,
+        name: seed.originTerminal ?? baseRoute.origin_station.name,
+      },
+      destination_station: {
+        ...baseRoute.destination_station,
+        name: seed.destinationTerminal ?? baseRoute.destination_station.name,
+      },
+    };
     return {
       id: seed.id,
       trip_code: seed.trip_code,

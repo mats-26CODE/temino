@@ -43,6 +43,8 @@ const SeatSelectionPage = () => {
     );
   }
 
+  const operatorName =
+    trip.bus?.operator?.name ?? trip.operator?.name ?? t("trips.unknownOperator");
   const seats = trip.seats ?? [];
 
   const onContinue = () => {
@@ -71,7 +73,7 @@ const SeatSelectionPage = () => {
             {t("seat.title")}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            {trip.bus.operator.name} · {trip.route.origin} → {trip.route.destination}
+            {operatorName} · {trip.route.origin} → {trip.route.destination}
           </p>
 
           <div className="mt-6">

@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * Dense horizontal trip row for the landing “Next departures” strip (Busbud-style).
+ * It shows the same domain entity as `TripCard` in `trip-card.tsx`, but that file is
+ * the wider 3-column search-result layout for `/trips`; this one is recommendation-specific.
+ */
+
 import dayjs from "dayjs";
 import Link from "next/link";
 import {
@@ -15,10 +21,12 @@ import {
   Wifi,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { formatCurrency, formatTripDuration } from "@/helpers/helpers";
+import { formatCurrency, formatTripDuration, resolveTripStopLabels } from "@/helpers/helpers";
 import { useTranslation } from "@/hooks/use-translation";
 
 const AMENITY_META: Record<string, { icon: LucideIcon; key: string }> = {
@@ -78,11 +86,25 @@ const getOperatorBrand = (code?: string) => {
   return FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length];
 };
 
-// ── Operator logo (image when available, otherwise a branded wordmark pill) ─
-const OperatorLogo = ({ operator }: { operator: Operator }) => {
-  if (operator.logo_url) {
-    // Use the raw <img> tag (logo_url may be any external host); object-contain
-    // keeps the logo's natural aspect within a fixed height.
+const operatorInitials = (op: Operator): string => {
+  const code = op.code?.trim();
+  if (code && code.length >= 2) return code.slice(0, 2).toUpperCase();
+  const name = op.name?.trim();
+  if (!name) return "?";
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    const a = parts[0]?.[0];
+    const b = parts[1]?.[0];
+    if (a && b) return `${a}${b}`.toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
+// ── Operator logo (image when URL exists; otherwise avatar + name) ───────────
+const OperatorLogo = ({ operator }: { operator: Operator | undefined }) => {
+  const { t } = useTranslation();
+
+  if (operator?.logo_url) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
@@ -93,23 +115,73 @@ const OperatorLogo = ({ operator }: { operator: Operator }) => {
     );
   }
 
-  const brand = getOperatorBrand(operator.code);
+  const displayName =
+    operator?.name?.trim() || operator?.code?.trim() || t("trips.unknownOperator");
+  const brand = getOperatorBrand(operator?.code);
+  const initials = operator ? operatorInitials(operator) : "?";
+
   return (
-    <div
-      className={cn("inline-flex max-w-full items-center rounded-md px-2 py-1 shadow-sm", brand.bg)}
-      title={operator.name}
-    >
-      <span
-        className={cn(
-          "truncate text-[11px] font-extrabold tracking-wider uppercase md:text-xs",
-          brand.fg,
-        )}
+    <div className="flex min-w-0 flex-col items-start gap-1.5">
+      <Avatar size="sm" className="ring-border/60 shrink-0 ring-1">
+        <AvatarFallback
+          className={cn(brand.bg, brand.fg, "rounded-full text-xs font-bold tracking-tight")}
+        >
+          {initials}
+        </AvatarFallback>
+      </Avatar>
+      <p
+        className="text-foreground line-clamp-2 w-full text-sm leading-tight font-bold tracking-tight"
+        title={displayName}
       >
-        {operator.name}
-      </span>
+        {displayName}
+      </p>
     </div>
   );
 };
+
+export const RecommendationCardSkeleton = ({ className }: { className?: string }) => (
+  <Card
+    className={cn(
+      "ring-border/70 rounded-2xl px-5 py-4 shadow-none ring-1 md:px-6 md:py-5",
+      className,
+    )}
+    aria-hidden
+  >
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
+      <div className="flex min-w-0 flex-col gap-2 md:w-44 md:shrink-0 lg:w-48">
+        <div className="flex flex-col gap-1.5">
+          <Skeleton className="size-6 shrink-0 rounded-full" />
+          <Skeleton className="h-4 w-[90%] max-w-36" />
+        </div>
+        <div className="flex gap-2 pt-0.5">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="size-4 rounded-sm" />
+          ))}
+        </div>
+      </div>
+
+      <div className="min-w-0 md:w-44 lg:w-48">
+        <Skeleton className="h-7 w-[4.5rem] md:h-8 md:w-24" />
+        <Skeleton className="mt-1.5 h-4 w-full max-w-48" />
+      </div>
+
+      <div className="flex flex-row items-center gap-2 md:w-20 md:shrink-0 md:flex-col md:gap-1">
+        <Skeleton className="size-5 shrink-0 rounded-full" />
+        <Skeleton className="h-3.5 w-14" />
+      </div>
+
+      <div className="min-w-0 md:w-44 lg:w-48">
+        <Skeleton className="h-7 w-[4.5rem] md:h-8 md:w-24" />
+        <Skeleton className="mt-1.5 h-4 w-full max-w-48" />
+      </div>
+
+      <div className="flex items-center justify-between gap-3 md:ml-auto md:min-w-52 md:justify-end md:gap-4">
+        <Skeleton className="h-6 w-20 rounded-full md:w-24" />
+        <Skeleton className="h-10 w-full max-w-36 shrink-0 rounded-full md:w-32" />
+      </div>
+    </div>
+  </Card>
+);
 
 export const RecommendationCard = ({ trip, tag, className }: RecommendationCardProps) => {
   const { t } = useTranslation();
@@ -117,11 +189,10 @@ export const RecommendationCard = ({ trip, tag, className }: RecommendationCardP
   const arrival = dayjs(trip.arrival_time);
   const rawPrice = trip.base_price ?? trip.price ?? 0;
   const price = typeof rawPrice === "string" ? Number.parseFloat(rawPrice) : rawPrice;
-  const operator = trip.operator ?? trip.bus.operator;
-  const amenities = (trip.bus.amenities ?? []).filter((a) => a in AMENITY_META).slice(0, 4);
+  const operator = trip.operator ?? trip.bus?.operator;
+  const amenities = (trip.bus?.amenities ?? []).filter((a) => a in AMENITY_META).slice(0, 4);
 
-  const originStation = trip.route.origin_station?.name ?? trip.route.origin;
-  const destStation = trip.route.destination_station?.name ?? trip.route.destination;
+  const { origin: originStation, destination: destStation } = resolveTripStopLabels(trip);
 
   return (
     <Card

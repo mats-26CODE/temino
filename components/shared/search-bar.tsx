@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 import { ArrowLeftRight, Calendar as CalendarIcon, MapPin, Search, Users } from "lucide-react";
@@ -52,14 +52,29 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
   const router = useRouter();
   const { t } = useTranslation();
   const setSearch = useBookingStore((s) => s.setSearch);
-  const initial = useBookingStore.getState();
 
-  const [origin, setOrigin] = useState<string>(initial.origin ?? "");
-  const [destination, setDestination] = useState<string>(initial.destination ?? "");
-  const [date, setDate] = useState<Date | undefined>(
-    initial.date ? new Date(initial.date) : new Date(),
-  );
-  const [passengers, setPassengers] = useState<number>(initial.passengers || 1);
+  // Persisted booking fields must not seed initial state from the store: on the
+  // client the store rehydrates from localStorage before paint, so the first
+  // client render would disagree with SSR and Radix Select would mismatch.
+  const [origin, setOrigin] = useState("");
+  const [destination, setDestination] = useState("");
+  const [date, setDate] = useState<Date | undefined>(() => new Date());
+  const [passengers, setPassengers] = useState(1);
+
+  useEffect(() => {
+    const applyFromStore = () => {
+      const s = useBookingStore.getState();
+      setOrigin(s.origin ?? "");
+      setDestination(s.destination ?? "");
+      setDate(s.date ? new Date(s.date) : new Date());
+      setPassengers(s.passengers || 1);
+    };
+
+    if (useBookingStore.persist.hasHydrated()) {
+      applyFromStore();
+    }
+    return useBookingStore.persist.onFinishHydration(applyFromStore);
+  }, []);
 
   const swap = () => {
     const o = origin;

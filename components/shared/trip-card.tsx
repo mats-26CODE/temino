@@ -1,11 +1,14 @@
 "use client";
 
+/** Search results card for `/trips` (3-column grid). Landing “next departures” rows use `RecommendationCard`. */
+
 import dayjs from "dayjs";
 import Link from "next/link";
 import { ArrowRight, Bus as BusIcon, Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatTripDuration } from "@/helpers/helpers";
 import { useTranslation } from "@/hooks/use-translation";
 
@@ -14,8 +17,46 @@ interface TripCardProps {
   onSelect?: (trip: Trip) => void;
 }
 
+export const TripCardSkeleton = ({ className }: { className?: string }) => (
+  <Card className={className} aria-hidden>
+    <CardContent className="grid grid-cols-1 items-center gap-4 p-4 md:grid-cols-[1.5fr_2fr_1fr] md:p-5">
+      <div className="flex items-center gap-3">
+        <Skeleton className="size-12 shrink-0 rounded-lg" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-1 flex-col items-center gap-2">
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-3.5 w-24" />
+        </div>
+        <div className="flex flex-1 flex-col items-center gap-2 px-1">
+          <Skeleton className="h-3 w-20" />
+          <div className="bg-border h-px w-full max-w-32" />
+          <Skeleton className="h-3 w-14" />
+        </div>
+        <div className="flex flex-1 flex-col items-center gap-2">
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-3.5 w-24" />
+        </div>
+      </div>
+      <div className="flex flex-col items-end gap-2 md:items-stretch">
+        <Skeleton className="h-9 w-28 self-end md:self-auto md:justify-self-end" />
+        <Skeleton className="h-3 w-24 self-end" />
+        <Skeleton className="h-10 w-full rounded-md" />
+      </div>
+    </CardContent>
+  </Card>
+);
+
 export const TripCard = ({ trip, onSelect }: TripCardProps) => {
   const { t } = useTranslation();
+  const operator = trip.bus?.operator ?? trip.operator;
+  const operatorName = operator?.name?.trim() || t("trips.unknownOperator");
+  const operatorRating = operator?.rating;
+  const busClass = trip.bus?.bus_class ?? trip.bus?.bus_type;
   const departure = dayjs(trip.departure_time);
   const arrival = dayjs(trip.arrival_time);
   const rawPrice = trip.base_price ?? trip.price ?? 0;
@@ -31,18 +72,18 @@ export const TripCard = ({ trip, onSelect }: TripCardProps) => {
           </div>
           <div className="min-w-0">
             <p className="text-foreground truncate text-base font-bold tracking-tight">
-              {trip.bus.operator.name}
+              {operatorName}
             </p>
             <div className="text-muted-foreground flex items-center gap-2 text-xs">
-              {trip.bus.bus_class && (
+              {busClass ? (
                 <Badge variant="secondary" className="capitalize">
-                  {trip.bus.bus_class}
+                  {busClass}
                 </Badge>
-              )}
-              {trip.bus.operator.rating ? (
+              ) : null}
+              {operatorRating != null && operatorRating > 0 ? (
                 <span className="inline-flex items-center gap-0.5">
                   <Star className="size-3 fill-amber-400 text-amber-400" />
-                  {trip.bus.operator.rating.toFixed(1)}
+                  {operatorRating.toFixed(1)}
                 </span>
               ) : null}
             </div>
