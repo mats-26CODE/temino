@@ -121,7 +121,7 @@ const OperatorLogo = ({ operator }: { operator: Operator | undefined }) => {
   const initials = operator ? operatorInitials(operator) : "?";
 
   return (
-    <div className="flex min-w-0 flex-col items-start gap-1.5">
+    <div className="flex min-w-0 items-center gap-1.5">
       <Avatar size="sm" className="ring-border/60 shrink-0 ring-1">
         <AvatarFallback
           className={cn(brand.bg, brand.fg, "rounded-full text-xs font-bold tracking-tight")}

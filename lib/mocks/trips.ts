@@ -191,54 +191,121 @@ const bus = (
   };
 };
 
+/**
+ * Amenity recipes by bus class. Buses inherit their feature set from their
+ * class so the data stays internally consistent (a "vip" bus always feels
+ * premium), while individual buses can still override / extend the list.
+ *
+ * Keys must come from `BUS_AMENITIES` in `constants/values.ts`.
+ *
+ * Exported so other modules (e.g. the trip hooks) can reuse it to graft
+ * sensible defaults onto live API trips whose `bus.amenities` is missing.
+ */
+export const AMENITIES_BY_CLASS: Record<BusType, string[]> = {
+  vip: ["wifi", "socket", "usb", "ac", "meal", "tv", "restroom", "reclining"],
+  executive: ["wifi", "socket", "usb", "ac", "meal", "reclining"],
+  standard: ["wifi", "socket", "ac", "reclining"],
+  coaster: ["socket", "ac", "reclining"],
+  mini_bus: ["socket", "ac"],
+};
+
 export const MOCK_BUSES: Bus[] = [
-  bus("bus-001", "KEX", "T 234 ABC", "KEX-07", "vip", 49, 2022, [
-    "wifi",
-    "socket",
-    "ac",
-    "tv",
-    "reclining",
+  bus(
+    "bus-001",
+    "KEX",
+    "T 234 ABC",
+    "KEX-07",
+    "vip",
+    49,
+    2022,
+    AMENITIES_BY_CLASS.vip,
+  ),
+  bus(
+    "bus-002",
+    "KEX",
+    "T 412 DEF",
+    "KEX-12",
+    "executive",
+    45,
+    2021,
+    AMENITIES_BY_CLASS.executive,
+  ),
+  bus("bus-003", "SHB", "T 318 GHI", "SHB-04", "standard", 60, 2020, [
+    ...AMENITIES_BY_CLASS.standard,
+    "restroom",
   ]),
-  bus("bus-002", "KEX", "T 412 DEF", "KEX-12", "executive", 45, 2021, [
-    "wifi",
-    "socket",
-    "ac",
-    "reclining",
-  ]),
-  bus("bus-003", "SHB", "T 318 GHI", "SHB-04", "standard", 60, 2020, ["socket", "ac"]),
   bus("bus-004", "SHB", "T 671 JKL", "SHB-09", "executive", 49, 2023, [
-    "wifi",
-    "socket",
-    "ac",
-    "meal",
-  ]),
-  bus("bus-005", "RCH", "T 102 MNO", "RCH-01", "vip", 41, 2024, [
-    "wifi",
-    "socket",
-    "usb",
-    "ac",
-    "meal",
+    ...AMENITIES_BY_CLASS.executive,
     "tv",
-    "reclining",
   ]),
+  bus(
+    "bus-005",
+    "RCH",
+    "T 102 MNO",
+    "RCH-01",
+    "vip",
+    41,
+    2024,
+    AMENITIES_BY_CLASS.vip,
+  ),
   bus("bus-006", "RCH", "T 558 PQR", "RCH-03", "executive", 49, 2023, [
-    "wifi",
-    "socket",
-    "ac",
-    "meal",
-  ]),
-  bus("bus-007", "SUM", "T 290 STU", "SUM-15", "standard", 60, 2019, ["socket"]),
-  bus("bus-008", "SUM", "T 845 VWX", "SUM-22", "executive", 45, 2022, ["wifi", "socket", "ac"]),
-  bus("bus-009", "DEX", "T 137 YZA", "DEX-08", "vip", 41, 2023, [
-    "wifi",
-    "socket",
-    "ac",
-    "meal",
+    ...AMENITIES_BY_CLASS.executive,
     "tv",
+    "restroom",
   ]),
-  bus("bus-010", "DEX", "T 765 BCD", "DEX-11", "coaster", 28, 2021, ["socket", "ac"]),
-  bus("bus-011", "ABD", "T 489 EFG", "ABD-02", "standard", 56, 2020, ["socket", "ac"]),
-  bus("bus-012", "ABD", "T 612 HIJ", "ABD-05", "mini_bus", 22, 2022, ["socket", "ac"]),
+  bus(
+    "bus-007",
+    "SUM",
+    "T 290 STU",
+    "SUM-15",
+    "standard",
+    60,
+    2019,
+    AMENITIES_BY_CLASS.standard,
+  ),
+  bus(
+    "bus-008",
+    "SUM",
+    "T 845 VWX",
+    "SUM-22",
+    "executive",
+    45,
+    2022,
+    AMENITIES_BY_CLASS.executive,
+  ),
+  bus("bus-009", "DEX", "T 137 YZA", "DEX-08", "vip", 41, 2023, [
+    ...AMENITIES_BY_CLASS.vip,
+  ]),
+  bus(
+    "bus-010",
+    "DEX",
+    "T 765 BCD",
+    "DEX-11",
+    "coaster",
+    28,
+    2021,
+    AMENITIES_BY_CLASS.coaster,
+  ),
+  bus(
+    "bus-011",
+    "ABD",
+    "T 489 EFG",
+    "ABD-02",
+    "standard",
+    56,
+    2020,
+    AMENITIES_BY_CLASS.standard,
+  ),
+  bus(
+    "bus-012",
+    "ABD",
+    "T 612 HIJ",
+    "ABD-05",
+    "mini_bus",
+    22,
+    2022,
+    AMENITIES_BY_CLASS.mini_bus,
+  ),
 ];
 
 const busById = (id: string): Bus => {
@@ -570,4 +637,36 @@ export const getRecommendedTripsByOrigin = (origin?: string | null): Trip[] => {
   const matched = all.filter((t) => t.route.origin === origin);
   if (matched.length > 0) return matched;
   return all.filter((t) => t.route.origin === "Dar es Salaam");
+};
+
+/**
+ * Filter mock trips for search-page results. Tries `route_code` first, then
+ * falls back to matching by city pair. Used as a dev fallback by
+ * `useSearchTrips` so the `/trips` UI is populated with feature-rich buses
+ * even when the live backend isn't available.
+ */
+export const getSearchTripsFromMocks = ({
+  route_code,
+  origin,
+  destination,
+}: {
+  route_code?: string;
+  origin?: string;
+  destination?: string;
+}): Trip[] => {
+  const all = buildMockTrips();
+  if (route_code) {
+    const byCode = all.filter((t) => t.route.route_code === route_code);
+    if (byCode.length > 0) return byCode;
+  }
+  if (origin && destination) {
+    const byPair = all.filter(
+      (t) => t.route.origin === origin && t.route.destination === destination,
+    );
+    if (byPair.length > 0) return byPair;
+  }
+  if (origin) {
+    return all.filter((t) => t.route.origin === origin);
+  }
+  return all;
 };

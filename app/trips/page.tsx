@@ -102,7 +102,7 @@ const TripsContent = () => {
       )}
 
       {!isLoading && trips && trips.length > 0 && (
-        <div className="space-y-3">
+        <div className="border-border/80 space-y-3 overflow-hidden rounded-2xl shadow-xs">
           {trips.map((trip) => (
             <TripCard key={trip.id} trip={trip} onSelect={handleSelect} />
           ))}
