@@ -152,6 +152,7 @@ const SeatSelectionPage = () => {
               seats={seats}
               selectedSeatId={selected?.id ?? null}
               onSelect={(se) => setSelected(se)}
+              busAmenities={trip.bus?.amenities}
             />
           ) : (
             <Card>

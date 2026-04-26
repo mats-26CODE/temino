@@ -1,106 +1,289 @@
 "use client";
 
-import { Fragment } from "react";
-import { ShipWheel } from "lucide-react";
+import { useCallback, useMemo, type ReactNode } from "react";
+import { Armchair, Bath, DoorOpen, ShipWheel } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/use-translation";
+import { getToiletRow1Based, parseRowFromNumber } from "@/lib/mocks/trip-seats";
+
+/** Two seat buttons (min-w-11) + gap-1.5, matching each pair + aisle layout. */
+const PAIR_W = "w-[5.875rem]";
+
+const RESTROOM = "restroom";
 
 interface SeatMapProps {
   seats: Seat[];
   selectedSeatId: string | null;
   onSelect: (seat: Seat) => void;
-  /** Optional: number of seats per row. Default 4 (2-2 layout with aisle). */
   columns?: number;
+  busAmenities?: string[] | null;
 }
 
+const seatIconClass = (args: { selected: boolean; taken: boolean }): string => {
+  if (args.taken) return "text-muted-foreground/45";
+  if (args.selected) return "text-primary-foreground drop-shadow-sm";
+  return "text-primary/90";
+};
+
+type SeatMapRowProps = {
+  children: ReactNode;
+};
+
+const DeckRow = ({ children }: SeatMapRowProps) => (
+  <div className="flex w-full min-w-0 items-center justify-center gap-1.5">{children}</div>
+);
+
 /**
- * Bus seat map — renders a clickable grid of seats with a center aisle.
- *
- * Status colors:
- *  - available  → outlined, primary on hover
- *  - selected   → filled primary
- *  - taken      → muted, disabled
+ * Left pair | aisle | right pair, or a full-width 5-across rear row (no aisle).
  */
-export const SeatMap = ({ seats, selectedSeatId, onSelect, columns = 4 }: SeatMapProps) => {
+export const SeatMap = ({
+  seats,
+  selectedSeatId,
+  onSelect,
+  columns: _columns = 4,
+  busAmenities,
+}: SeatMapProps) => {
   const { t } = useTranslation();
-  const rows: Seat[][] = [];
+  const hasRestroom = (busAmenities ?? []).some((a) => a.toLowerCase() === RESTROOM);
 
-  const sorted = [...seats].sort((a, b) => {
-    const ar = a.row ?? Number.parseInt(a.number) ?? 0;
-    const br = b.row ?? Number.parseInt(b.number) ?? 0;
-    if (ar !== br) return ar - br;
-    return (a.column ?? 0) - (b.column ?? 0);
-  });
+  const byRow = useMemo(() => {
+    const m = new Map<number, Seat[]>();
+    for (const s of seats) {
+      const r = s.row ?? parseRowFromNumber(s.number);
+      if (r < 1) continue;
+      if (!m.has(r)) m.set(r, []);
+      m.get(r)!.push(s);
+    }
+    for (const arr of m.values()) {
+      arr.sort((a, b) => (a.column ?? 0) - (b.column ?? 0));
+    }
+    return m;
+  }, [seats]);
 
-  for (let i = 0; i < sorted.length; i += columns) {
-    rows.push(sorted.slice(i, i + columns));
-  }
+  const rowOrder = useMemo(
+    () => Array.from(byRow.keys()).sort((a, b) => a - b),
+    [byRow],
+  );
 
-  const aisleAfter = Math.floor(columns / 2);
+  const maxR = rowOrder.length > 0 ? Math.max(...rowOrder) : 0;
+  const lastRowSeats = maxR > 0 ? byRow.get(maxR) : undefined;
+  const isLastRowFive = (lastRowSeats?.length ?? 0) === 5;
+
+  /** 4-ad rows in the 2+2 section — used to place the mid-bus WC. */
+  const n4ForWc = useMemo(() => {
+    if (!isLastRowFive || rowOrder.length <= 1) return rowOrder.length;
+    return rowOrder.filter((r) => r < maxR).length;
+  }, [isLastRowFive, maxR, rowOrder]);
+
+  const toilet1Based = useMemo(
+    () => (hasRestroom && n4ForWc >= 3 ? getToiletRow1Based(n4ForWc) : null),
+    [hasRestroom, n4ForWc],
+  );
+
+  const showToilet = useCallback(
+    (row1: number) => {
+      if (toilet1Based == null || toilet1Based !== row1) return false;
+      const aLabel = `${row1}A`.toUpperCase();
+      const has6A = byRow.get(row1)?.some((s) => s.number.toUpperCase() === aLabel) ?? false;
+      return !has6A;
+    },
+    [byRow, toilet1Based],
+  );
+
+  const getSeat = useCallback(
+    (row1: number, letter: "A" | "B" | "C" | "D" | "E") => {
+      const want = `${row1}${letter}`.toUpperCase();
+      return byRow.get(row1)?.find((s) => s.number.toUpperCase() === want) ?? null;
+    },
+    [byRow],
+  );
+
+  const renderSeat = (seat: Seat) => {
+    const isSelected = seat.id === selectedSeatId;
+    const isTaken = seat.status !== "available";
+    return (
+      <button
+        key={seat.id}
+        type="button"
+        disabled={isTaken}
+        onClick={() => onSelect(seat)}
+        className={cn(
+          "flex min-h-14 w-full min-w-0 max-w-full flex-col items-center justify-center gap-0.5 rounded-xl border-2 px-1 py-1.5 text-[10px] font-bold tracking-tight transition-all",
+          isSelected &&
+            "border-primary bg-primary text-primary-foreground scale-[1.02] shadow-md shadow-primary/25",
+          !isSelected &&
+            !isTaken &&
+            "border-primary/30 bg-primary/5 text-foreground cursor-pointer hover:border-primary hover:bg-primary/15 hover:shadow-sm active:scale-[0.99]",
+          isTaken && "cursor-not-allowed border-transparent bg-muted/60 text-muted-foreground opacity-80",
+        )}
+        title={`${seat.number} — ${seat.status}`}
+        aria-pressed={isSelected}
+        aria-label={`Seat ${seat.number} ${isTaken ? "taken" : isSelected ? "selected" : "available"}`}
+      >
+        <Armchair
+          className={cn("size-5 shrink-0", seatIconClass({ selected: isSelected, taken: isTaken }))}
+          strokeWidth={2.25}
+        />
+        <span
+          className={cn(
+            "tabular-nums",
+            isTaken && "line-through opacity-60",
+            isSelected && "text-primary-foreground/95",
+            !isTaken && !isSelected && "text-foreground/90",
+          )}
+        >
+          {seat.number}
+        </span>
+      </button>
+    );
+  };
+
+  const Aisle = () => (
+    <div className="bg-border/35 h-14 w-1.5 shrink-0 self-center rounded-full" aria-hidden />
+  );
 
   return (
-    <Card className="w-full max-w-md gap-0 self-start rounded-2xl p-6">
-      {/* Driver — front of bus; keep wheel on the right, align block to the start of the column (no mx-auto). */}
-      <div className="mb-6 flex w-full min-w-0 justify-end">
-        <div
-          className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-md"
-          title="Driver"
-        >
-          <ShipWheel className="size-5" />
-        </div>
-      </div>
-
-      {/* Seats — row width matches the driver/seat block; no extra left gutter */}
-      <div className="space-y-2">
-        {rows.map((row, rowIdx) => (
-          <div
-            key={rowIdx}
-            className="flex w-full min-w-0 items-center justify-center gap-1.5"
-          >
-            {row.map((seat, colIdx) => {
-              const isSelected = seat.id === selectedSeatId;
-              const isTaken = seat.status !== "available";
-              return (
-                <Fragment key={seat.id}>
-                  <button
-                    type="button"
-                    disabled={isTaken}
-                    onClick={() => onSelect(seat)}
-                    className={cn(
-                      "border-border relative flex size-10 items-center justify-center rounded-md border text-xs font-semibold transition-all",
-                      isSelected && "bg-primary text-primary-foreground border-primary scale-105",
-                      !isSelected &&
-                        !isTaken &&
-                        "hover:border-primary hover:bg-primary/10 hover:text-primary cursor-pointer",
-                      isTaken &&
-                        "bg-muted text-muted-foreground cursor-not-allowed line-through opacity-60",
-                    )}
-                    title={`Seat ${seat.number} — ${seat.status}`}
-                  >
-                    {seat.number}
-                  </button>
-                  {colIdx + 1 === aisleAfter && colIdx < row.length - 1 && <div className="w-3" />}
-                </Fragment>
-              );
-            })}
+    <Card className="w-full max-w-md gap-0 self-start overflow-hidden rounded-2xl p-0">
+      <div className="bg-muted/25 border-b px-4 py-3.5">
+        <p className="text-muted-foreground mb-2.5 text-[10px] font-semibold tracking-widest uppercase">
+          {t("seat.map.direction")}
+        </p>
+        <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+          <div className="flex items-center gap-2">
+            <div
+              className="bg-background/80 flex size-9 items-center justify-center rounded-lg border-2 border-primary/25 shadow-sm"
+              aria-hidden
+            >
+              <Armchair className="text-primary/90 h-5 w-5" strokeWidth={2.25} />
+            </div>
+            <span className="text-muted-foreground text-xs font-medium">{t("seat.legend.available")}</span>
           </div>
-        ))}
+          <div className="flex items-center gap-2">
+            <div
+              className="bg-primary flex size-9 items-center justify-center rounded-lg border-2 border-primary text-primary-foreground shadow-sm"
+              aria-hidden
+            >
+              <Armchair className="h-5 w-5" strokeWidth={2.25} />
+            </div>
+            <span className="text-muted-foreground text-xs font-medium">{t("seat.legend.selected")}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="bg-muted/90 flex size-9 items-center justify-center rounded-lg border-2 border-transparent opacity-80"
+              aria-hidden
+            >
+              <Armchair className="text-muted-foreground/50 h-5 w-5" strokeWidth={2.25} />
+            </div>
+            <span className="text-muted-foreground text-xs font-medium">{t("seat.legend.taken")}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Legend — left-aligned to match page header / column start */}
-      <div className="border-border mt-6 flex w-full min-w-0 flex-wrap items-center justify-start gap-x-4 gap-y-2 border-t pt-4 text-xs">
-        <div className="flex items-center gap-1.5">
-          <div className="border-border size-4 rounded border" />
-          <span className="text-muted-foreground">{t("seat.legend.available")}</span>
+      <div className="space-y-0 p-5">
+        <div className="from-muted/30 to-background border-border/60 mb-3 rounded-xl border bg-linear-to-b p-3">
+          <p className="text-muted-foreground mb-2.5 text-center text-[10px] font-semibold tracking-widest uppercase">
+            {t("seat.map.front")}
+          </p>
+          <div className="mb-0.5 flex w-full min-w-0 items-end justify-center gap-1.5">
+            <div className={cn("flex min-h-18 flex-col items-center justify-end gap-1.5", PAIR_W)}>
+              <div
+                className="border-border bg-primary/5 text-primary flex h-12 w-12 items-center justify-center rounded-lg border-2"
+                title={t("seat.map.door")}
+              >
+                <DoorOpen className="size-6" strokeWidth={2} />
+              </div>
+              <span className="text-muted-foreground text-[10px] font-medium leading-tight">
+                {t("seat.map.door")}
+              </span>
+            </div>
+            <Aisle />
+            <div
+              className={cn(
+                "flex min-h-18 flex-col items-center justify-end gap-1.5",
+                PAIR_W,
+              )}
+            >
+              <div
+                className="bg-amber-500/10 text-amber-700 dark:text-amber-400 flex h-12 w-12 items-center justify-center rounded-lg border-2 border-amber-500/30"
+                title={t("seat.map.driver")}
+              >
+                <ShipWheel className="size-6" strokeWidth={2} />
+              </div>
+              <span className="text-muted-foreground text-[10px] font-medium leading-tight">
+                {t("seat.map.driver")}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="bg-primary size-4 rounded" />
-          <span className="text-muted-foreground">{t("seat.legend.selected")}</span>
+
+        <div className="space-y-2.5">
+          {rowOrder.map((r) => {
+            const inRow = byRow.get(r) ?? [];
+            const fiveAcross = inRow.length === 5;
+            if (fiveAcross) {
+              const withDivider = r === maxR && isLastRowFive && rowOrder.length > 1;
+              return (
+                <div key={r} className="w-full min-w-0">
+                  {withDivider && (
+                    <div className="border-border/50 space-y-1.5 border-t border-dashed pt-3">
+                      <p className="text-center text-[10px] font-semibold tracking-widest text-amber-700/90 uppercase dark:text-amber-400/90">
+                        {t("seat.map.rearRow")}
+                      </p>
+                    </div>
+                  )}
+                  <div className="grid w-full grid-cols-5 gap-1.5">
+                    {inRow.map((seat) => (
+                      <div key={seat.id} className="min-w-0">
+                        {renderSeat(seat)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
+            const wc = showToilet(r);
+            const sA = getSeat(r, "A");
+            const sB = getSeat(r, "B");
+            const sC = getSeat(r, "C");
+            const sD = getSeat(r, "D");
+
+            return (
+              <DeckRow key={r}>
+                {wc ? (
+                  <>
+                    <div
+                      className="border-amber-200/80 bg-amber-50/95 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100 flex min-h-14 min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl border-2 py-1.5"
+                      role="img"
+                      title={t("seat.map.wc")}
+                      aria-label={t("seat.map.wc")}
+                    >
+                      <Bath className="size-5 opacity-90" strokeWidth={2} />
+                      <span className="px-0.5 text-center text-[8px] font-bold leading-tight">
+                        {t("seat.map.wcShort")}
+                      </span>
+                    </div>
+                    {sB && renderSeat(sB)}
+                  </>
+                ) : (
+                  <>
+                    {sA && renderSeat(sA)}
+                    {sB && renderSeat(sB)}
+                  </>
+                )}
+                <Aisle />
+                {sC && renderSeat(sC)}
+                {sD && renderSeat(sD)}
+              </DeckRow>
+            );
+          })}
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="bg-muted size-4 rounded" />
-          <span className="text-muted-foreground">{t("seat.legend.taken")}</span>
+
+        <div className="border-border/60 mt-4 flex flex-col items-center gap-1 border-t border-dashed pt-3 text-center">
+          <p className="text-muted-foreground text-[10px] font-semibold tracking-widest uppercase">
+            {t("seat.map.rear")}
+          </p>
         </div>
       </div>
     </Card>

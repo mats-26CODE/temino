@@ -110,13 +110,17 @@ interface Route {
 
 type SeatStatus = "available" | "booked" | "reserved" | "blocked";
 
+type SeatLayout = "standard" | "full_width_rear";
+
 interface Seat {
   id: string;
-  number: string; // e.g. "1A"
+  number: string; // e.g. "1A" — last row of deck may include "E" (5 across)
   row?: number;
   column?: number;
   status: SeatStatus;
   price?: number;
+  /** Set on mock for the 5-across back row in some layouts. */
+  layout?: SeatLayout;
 }
 
 /** Raw `trips.TripSeat` row from Django REST (`TripSeatSerializer`). */
