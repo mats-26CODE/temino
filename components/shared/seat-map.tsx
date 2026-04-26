@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, type ReactNode } from "react";
 import { Armchair, Bath, DoorOpen, ShipWheel } from "lucide-react";
+import { GiSteeringWheel } from "react-icons/gi";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/use-translation";
@@ -61,10 +62,7 @@ export const SeatMap = ({
     return m;
   }, [seats]);
 
-  const rowOrder = useMemo(
-    () => Array.from(byRow.keys()).sort((a, b) => a - b),
-    [byRow],
-  );
+  const rowOrder = useMemo(() => Array.from(byRow.keys()).sort((a, b) => a - b), [byRow]);
 
   const maxR = rowOrder.length > 0 ? Math.max(...rowOrder) : 0;
   const lastRowSeats = maxR > 0 ? byRow.get(maxR) : undefined;
@@ -109,13 +107,14 @@ export const SeatMap = ({
         disabled={isTaken}
         onClick={() => onSelect(seat)}
         className={cn(
-          "flex min-h-14 w-full min-w-0 max-w-full flex-col items-center justify-center gap-0.5 rounded-xl border-2 px-1 py-1.5 text-[10px] font-bold tracking-tight transition-all",
+          "flex min-h-14 w-full max-w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 px-1 py-1.5 text-[10px] font-bold tracking-tight transition-all",
           isSelected &&
-            "border-primary bg-primary text-primary-foreground scale-[1.02] shadow-md shadow-primary/25",
+            "border-primary bg-primary text-primary-foreground shadow-primary/25 scale-[1.02] shadow-md",
           !isSelected &&
             !isTaken &&
-            "border-primary/30 bg-primary/5 text-foreground cursor-pointer hover:border-primary hover:bg-primary/15 hover:shadow-sm active:scale-[0.99]",
-          isTaken && "cursor-not-allowed border-transparent bg-muted/60 text-muted-foreground opacity-80",
+            "border-primary/30 bg-primary/5 text-foreground hover:border-primary hover:bg-primary/15 cursor-pointer hover:shadow-sm active:scale-[0.99]",
+          isTaken &&
+            "bg-muted/60 text-muted-foreground cursor-not-allowed border-transparent opacity-80",
         )}
         title={`${seat.number} — ${seat.status}`}
         aria-pressed={isSelected}
@@ -152,21 +151,25 @@ export const SeatMap = ({
         <div className="flex flex-wrap items-center gap-4 sm:gap-5">
           <div className="flex items-center gap-2">
             <div
-              className="bg-background/80 flex size-9 items-center justify-center rounded-lg border-2 border-primary/25 shadow-sm"
+              className="bg-background/80 border-primary/25 flex size-9 items-center justify-center rounded-lg border-2 shadow-sm"
               aria-hidden
             >
               <Armchair className="text-primary/90 h-5 w-5" strokeWidth={2.25} />
             </div>
-            <span className="text-muted-foreground text-xs font-medium">{t("seat.legend.available")}</span>
+            <span className="text-muted-foreground text-xs font-medium">
+              {t("seat.legend.available")}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div
-              className="bg-primary flex size-9 items-center justify-center rounded-lg border-2 border-primary text-primary-foreground shadow-sm"
+              className="bg-primary border-primary text-primary-foreground flex size-9 items-center justify-center rounded-lg border-2 shadow-sm"
               aria-hidden
             >
               <Armchair className="h-5 w-5" strokeWidth={2.25} />
             </div>
-            <span className="text-muted-foreground text-xs font-medium">{t("seat.legend.selected")}</span>
+            <span className="text-muted-foreground text-xs font-medium">
+              {t("seat.legend.selected")}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div
@@ -175,7 +178,9 @@ export const SeatMap = ({
             >
               <Armchair className="text-muted-foreground/50 h-5 w-5" strokeWidth={2.25} />
             </div>
-            <span className="text-muted-foreground text-xs font-medium">{t("seat.legend.taken")}</span>
+            <span className="text-muted-foreground text-xs font-medium">
+              {t("seat.legend.taken")}
+            </span>
           </div>
         </div>
       </div>
@@ -185,7 +190,7 @@ export const SeatMap = ({
           <p className="text-muted-foreground mb-2.5 text-center text-[10px] font-semibold tracking-widest uppercase">
             {t("seat.map.front")}
           </p>
-          <div className="mb-0.5 flex w-full min-w-0 items-end justify-center gap-1.5">
+          <div className="mb-0.5 flex w-full min-w-0 items-start justify-between gap-1.5">
             <div className={cn("flex min-h-18 flex-col items-center justify-end gap-1.5", PAIR_W)}>
               <div
                 className="border-border bg-primary/5 text-primary flex h-12 w-12 items-center justify-center rounded-lg border-2"
@@ -193,24 +198,19 @@ export const SeatMap = ({
               >
                 <DoorOpen className="size-6" strokeWidth={2} />
               </div>
-              <span className="text-muted-foreground text-[10px] font-medium leading-tight">
+              <span className="text-muted-foreground text-[10px] leading-tight font-medium">
                 {t("seat.map.door")}
               </span>
             </div>
             <Aisle />
-            <div
-              className={cn(
-                "flex min-h-18 flex-col items-center justify-end gap-1.5",
-                PAIR_W,
-              )}
-            >
+            <div className={cn("flex min-h-18 flex-col items-center justify-end gap-1.5", PAIR_W)}>
               <div
-                className="bg-amber-500/10 text-amber-700 dark:text-amber-400 flex h-12 w-12 items-center justify-center rounded-lg border-2 border-amber-500/30"
+                className="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
                 title={t("seat.map.driver")}
               >
-                <ShipWheel className="size-6" strokeWidth={2} />
+                <GiSteeringWheel className="size-6" strokeWidth={2} />
               </div>
-              <span className="text-muted-foreground text-[10px] font-medium leading-tight">
+              <span className="text-muted-foreground text-[10px] leading-tight font-medium">
                 {t("seat.map.driver")}
               </span>
             </div>
@@ -243,6 +243,15 @@ export const SeatMap = ({
               );
             }
 
+            const isLastSingle = r === maxR && inRow.length === 1 && rowOrder.length > 1;
+            if (isLastSingle) {
+              return (
+                <div key={r} className="grid w-full grid-cols-5 gap-1.5">
+                  <div className="col-start-3 col-end-4 min-w-0">{renderSeat(inRow[0])}</div>
+                </div>
+              );
+            }
+
             const wc = showToilet(r);
             const sA = getSeat(r, "A");
             const sB = getSeat(r, "B");
@@ -254,13 +263,13 @@ export const SeatMap = ({
                 {wc ? (
                   <>
                     <div
-                      className="border-amber-200/80 bg-amber-50/95 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100 flex min-h-14 min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl border-2 py-1.5"
+                      className="flex min-h-14 min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-amber-200/80 bg-amber-50/95 py-1.5 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100"
                       role="img"
                       title={t("seat.map.wc")}
                       aria-label={t("seat.map.wc")}
                     >
                       <Bath className="size-5 opacity-90" strokeWidth={2} />
-                      <span className="px-0.5 text-center text-[8px] font-bold leading-tight">
+                      <span className="px-0.5 text-center text-[8px] leading-tight font-bold">
                         {t("seat.map.wcShort")}
                       </span>
                     </div>
