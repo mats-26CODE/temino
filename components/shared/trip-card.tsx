@@ -17,39 +17,15 @@
 
 import dayjs from "dayjs";
 import Link from "next/link";
-import {
-  Armchair,
-  ArrowRight,
-  Bus as BusIcon,
-  Coffee,
-  DoorClosed,
-  MapPin,
-  Plug,
-  Snowflake,
-  Star,
-  Tv,
-  Usb,
-  Wifi,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowRight, Bus as BusIcon, MapPin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BusAmenityPills } from "@/components/shared/bus-amenity-pills";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatTripDuration, resolveTripStopLabels } from "@/helpers/helpers";
 import { useTranslation } from "@/hooks/use-translation";
-
-const AMENITY_META: Record<string, { icon: LucideIcon; key: string }> = {
-  wifi: { icon: Wifi, key: "bus.amenities.wifi" },
-  socket: { icon: Plug, key: "bus.amenities.socket" },
-  usb: { icon: Usb, key: "bus.amenities.usb" },
-  ac: { icon: Snowflake, key: "bus.amenities.ac" },
-  meal: { icon: Coffee, key: "bus.amenities.meal" },
-  tv: { icon: Tv, key: "bus.amenities.tv" },
-  restroom: { icon: DoorClosed, key: "bus.amenities.restroom" },
-  reclining: { icon: Armchair, key: "bus.amenities.reclining" },
-};
 
 interface TripCardProps {
   trip: Trip;
@@ -136,7 +112,7 @@ export const TripCard = ({ trip, onSelect }: TripCardProps) => {
   const price = typeof rawPrice === "string" ? Number.parseFloat(rawPrice) : rawPrice;
   const { origin: originStation, destination: destStation } = resolveTripStopLabels(trip);
   const durationLabel = formatTripDuration(trip.departure_time, trip.arrival_time);
-  const amenities = (trip.bus?.amenities ?? []).filter((a) => a in AMENITY_META).slice(0, 6);
+  const amenities = trip.bus?.amenities ?? [];
 
   const routeShape = trip.route as unknown as Route | string;
   const fallbackOrigin =
@@ -221,18 +197,7 @@ export const TripCard = ({ trip, onSelect }: TripCardProps) => {
                 {String(busClass).replace(/_/g, " ")}
               </Badge>
             ) : null}
-            {amenities.map((a) => {
-              const Icon = AMENITY_META[a].icon;
-              return (
-                <span
-                  key={a}
-                  className="bg-muted/60 text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-                >
-                  <Icon className="size-3.5 shrink-0" strokeWidth={2} />
-                  {t(AMENITY_META[a].key)}
-                </span>
-              );
-            })}
+            <BusAmenityPills amenities={amenities} maxVisible={6} />
           </div>
 
           <div className="flex shrink-0 items-center gap-8">

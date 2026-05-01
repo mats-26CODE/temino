@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Ticket, User, Settings, History } from "lucide-react";
+import { LayoutDashboard, Ticket, User, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -60,19 +60,6 @@ export const DashboardSidebar = () => {
                   <Link href="/dashboard/trips">
                     <Ticket className="size-4" />
                     <span>My trips</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/dashboard/history")}
-                  tooltip="Trip history"
-                >
-                  <Link href="/dashboard/history">
-                    <History className="size-4" />
-                    <span>Trip history</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

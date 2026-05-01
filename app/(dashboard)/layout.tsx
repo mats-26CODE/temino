@@ -33,7 +33,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <SidebarProvider>
           <DashboardSidebar />
           <SidebarInset className="flex w-full flex-col">
-            <main className="w-full flex-1 overflow-auto p-4 pb-10">{children}</main>
+            <main className="border-border/40 w-full flex-1 overflow-auto border-t bg-gradient-to-b from-background to-muted/20 p-6 md:p-8">
+              <div className="mx-auto w-full max-w-6xl">{children}</div>
+            </main>
             <Footer />
           </SidebarInset>
         </SidebarProvider>

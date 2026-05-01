@@ -112,6 +112,7 @@ type AppUserLite = {
   full_name?: string;
   phone?: string;
   email?: string | null;
+  traveller_profile?: PassengerDetailsFormValues | null;
 };
 
 export const buildPartyFormDefaults = ({
@@ -134,6 +135,21 @@ export const buildPartyFormDefaults = ({
     }
     if (i === 0) {
       const legacy = legacyPassenger;
+      const tp = user?.traveller_profile;
+      const hasStoredLegacy =
+        Boolean(legacy?.passenger_name?.trim()) ||
+        Boolean(legacy?.first_name?.trim()) ||
+        Boolean(legacy?.passenger_phone?.trim());
+      if (!hasStoredLegacy && tp && (tp.first_name?.trim() || tp.last_name?.trim() || tp.passenger_phone?.trim())) {
+        list.push({
+          ...emptyPassengerDetailsFormValues(),
+          ...tp,
+          passenger_phone:
+            coerceE164PhoneValueForInput(tp.passenger_phone, "TZ") ?? tp.passenger_phone ?? "",
+          id_number: tp.id_number ?? "",
+        });
+        continue;
+      }
       const hasSplitFields =
         Boolean(legacy?.first_name?.trim()) || Boolean(legacy?.last_name?.trim());
       const fromName = splitFullName(legacy?.passenger_name ?? user?.full_name);
@@ -156,4 +172,25 @@ export const buildPartyFormDefaults = ({
     list.push(emptyPassengerDetailsFormValues());
   }
   return list;
+};
+
+export const travellerDefaultsFromAuthUser = (
+  user: AppUserLite | null,
+): PassengerDetailsFormValues => {
+  const tp = user?.traveller_profile;
+  if (tp && (tp.first_name?.trim() || tp.last_name?.trim() || tp.passenger_phone?.trim())) {
+    return {
+      ...emptyPassengerDetailsFormValues(),
+      ...tp,
+      passenger_phone:
+        coerceE164PhoneValueForInput(tp.passenger_phone, "TZ") ?? tp.passenger_phone ?? "",
+      id_number: tp.id_number ?? "",
+    };
+  }
+  return buildPartyFormDefaults({
+    partyCount: 1,
+    partyStored: [],
+    legacyPassenger: null,
+    user: user ?? undefined,
+  })[0];
 };

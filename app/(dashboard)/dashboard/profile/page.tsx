@@ -1,14 +1,27 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { useMemo, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PassengerDetailsForm } from "@/components/shared/passenger-details-form";
+import type { PassengerDetailsFormValues } from "@/lib/passenger-forms";
+import { travellerDefaultsFromAuthUser } from "@/lib/passenger-forms";
 import { useUser } from "@/hooks/use-auth";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { normalizePhoneForBookingApi } from "@/helpers/booking-phone";
+import { useTranslation } from "@/hooks/use-translation";
+import { ToastAlert } from "@/config/toast";
+
+const PROFILE_TRAVELLER_FORM_ID = "profile-traveller-form";
 
 const ProfilePage = () => {
   const { user } = useUser();
+  const setUser = useAuthStore((s) => s.setUser);
+  const { t } = useTranslation();
+  const [saving, setSaving] = useState(false);
+
+  const defaults = useMemo(() => travellerDefaultsFromAuthUser(user), [user]);
+
   const initials = (user?.full_name ?? user?.phone ?? "T")
     .split(" ")
     .map((n) => n[0])
@@ -17,53 +30,61 @@ const ProfilePage = () => {
     .join("")
     .toUpperCase();
 
+  const onSave = (data: PassengerDetailsFormValues) => {
+    if (!user) return;
+    setSaving(true);
+    try {
+      const phone = normalizePhoneForBookingApi(data.passenger_phone) || user.phone;
+      const fullName = `${data.first_name} ${data.last_name}`.trim();
+      setUser({
+        ...user,
+        full_name: fullName || user.full_name,
+        phone,
+        email: data.passenger_email?.trim() || null,
+        traveller_profile: data,
+      });
+      ToastAlert.success(t("dashboard.profileSaved"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-10">
+      <div className="space-y-1">
         <h1 className="text-foreground text-3xl font-bold tracking-tight text-balance md:text-4xl">
-          Profile
+          {t("dashboard.profile")}
         </h1>
-        <p className="text-muted-foreground mt-1">Manage your personal info.</p>
+        <p className="text-muted-foreground max-w-xl text-sm leading-relaxed">
+          {t("dashboard.profileSubtitle")}
+        </p>
       </div>
 
-      <Card className="max-w-2xl">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+        <Avatar className="ring-primary/10 size-16 ring-2">
+          {user?.avatar_url ? <AvatarImage src={user.avatar_url} alt="" /> : null}
+          <AvatarFallback className="text-lg">{initials}</AvatarFallback>
+        </Avatar>
+        <div>
+          <p className="text-foreground font-semibold">{user?.full_name ?? "—"}</p>
+          <p className="text-muted-foreground text-sm tabular-nums">{user?.phone ?? ""}</p>
+        </div>
+      </div>
+
+      <Card className="border-border/60 max-w-3xl rounded-xl shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base">Personal information</CardTitle>
+          <CardTitle className="text-lg">{t("passenger.title")}</CardTitle>
+          <CardDescription>{t("passenger.subtitle")}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="flex items-center gap-4">
-            <Avatar className="size-16">
-              {user?.avatar_url ? <AvatarImage src={user.avatar_url} /> : null}
-              <AvatarFallback className="text-lg">{initials}</AvatarFallback>
-            </Avatar>
-            <Button variant="outline" size="sm" disabled>
-              Upload (soon)
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="name">Full name</Label>
-              <Input id="name" defaultValue={user?.full_name ?? ""} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" defaultValue={user?.phone ?? ""} disabled />
-            </div>
-            <div className="space-y-1.5 md:col-span-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                defaultValue={user?.email ?? ""}
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <Button disabled>Save changes (soon)</Button>
-          </div>
+        <CardContent>
+          <PassengerDetailsForm
+            formId={PROFILE_TRAVELLER_FORM_ID}
+            defaultValues={defaults}
+            onValidSubmit={onSave}
+            showSubmitFooter
+            submitLabel={t("dashboard.profileSave")}
+            isSubmitting={saving}
+          />
         </CardContent>
       </Card>
     </div>

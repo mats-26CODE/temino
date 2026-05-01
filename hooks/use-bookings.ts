@@ -2,6 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { buildExampleDashboardBookings } from "@/lib/mocks/example-dashboard-bookings";
+
+const shouldUseExampleDashboardBookings = () =>
+  process.env.NODE_ENV === "development" ||
+  process.env.NEXT_PUBLIC_SHOW_EXAMPLE_DASHBOARD_BOOKINGS === "true";
+
+const withExampleBookingsWhenEmpty = (list: Booking[]): Booking[] => {
+  if (!shouldUseExampleDashboardBookings() || list.length > 0) return list;
+  return buildExampleDashboardBookings();
+};
 
 export const BOOKINGS_QUERY_KEY = ["bookings"] as const;
 
@@ -38,7 +48,8 @@ export const useBookings = () =>
     queryKey: [...BOOKINGS_QUERY_KEY, "list"],
     queryFn: async () => {
       const { data } = await api.get<Booking[] | ApiPaginated<Booking>>("/api/bookings/");
-      return Array.isArray(data) ? data : data.results;
+      const list = Array.isArray(data) ? data : data.results;
+      return withExampleBookingsWhenEmpty(list);
     },
   });
 

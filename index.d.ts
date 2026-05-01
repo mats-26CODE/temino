@@ -201,6 +201,18 @@ interface Booking extends PassengerInfo {
   reference?: string;
   created_at: string;
   trip?: Trip;
+  /** Django `booking_reference` — may surface before client normalizes to `reference`. */
+  booking_reference?: string;
+  /** From `BookingSerializer.seat_number` when trip seat is hydrated. */
+  seat_number?: string | null;
+  /** Nested passengers when API includes `BookingPassenger` rows. */
+  passengers?: BookingPassengerRow[];
+}
+
+/** Django `BookingPassenger`-shaped nested row (subset for UI). */
+interface BookingPassengerRow {
+  full_name?: string;
+  seat_number?: string | null;
 }
 
 interface CreateBookingPayload extends PassengerInfo {
@@ -219,6 +231,8 @@ interface SearchTripsParams {
 }
 
 // ── User / Auth (frontend-shaped, mocked client-side until backend exposes) ──
+type TravellerProfile = import("./lib/passenger-forms").PassengerDetailsFormValues;
+
 interface AppUser {
   id: string;
   full_name: string;
@@ -226,6 +240,8 @@ interface AppUser {
   email?: string | null;
   avatar_url?: string | null;
   created_at: string;
+  /** Saved passenger-style profile for prefill (dashboard + booking). */
+  traveller_profile?: TravellerProfile | null;
 }
 
 // ── Helpers / formatting ─────────────────────────────────────────────────────
