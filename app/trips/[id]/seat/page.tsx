@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import dayjs from "dayjs";
@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SeatMap } from "@/components/shared/seat-map";
 import { BookingSummary } from "@/components/shared/booking-summary";
+import { BoardingStationsCard } from "@/components/shared/boarding-stations-card";
 import { PassengerPartyCard } from "@/components/shared/passenger-party-card";
 import { useTrip } from "@/hooks/use-trips";
 import { useUser } from "@/hooks/use-auth";
@@ -36,6 +37,8 @@ const SeatSelectionPage = () => {
   const setSelectedSeats = useBookingStore((s) => s.setSelectedSeats);
 
   const storedTrip = useBookingStore((s) => s.selectedTrip);
+  const pickupStation = useBookingStore((s) => s.pickupStation);
+  const dropoffStation = useBookingStore((s) => s.dropoffStation);
   const passengerStored = useBookingStore((s) => s.passenger);
   const setSelectedTrip = useBookingStore((s) => s.setSelectedTrip);
   const setPartyPassengers = useBookingStore((s) => s.setPartyPassengers);
@@ -127,6 +130,18 @@ const SeatSelectionPage = () => {
     if (fetchedTrip && !useStoredTrip) setSelectedTrip(fetchedTrip);
   }, [fetchedTrip, useStoredTrip, setSelectedTrip]);
 
+  const partyCardKey = `${tripId}-${selectedSeatIds.join("|")}`;
+  const [partyFormValid, setPartyFormValid] = useState(false);
+
+  useEffect(() => {
+    if (partyCount === 0) setPartyFormValid(false);
+  }, [partyCount]);
+
+  /** Avoid one frame where the old validity carries over after seats / traveller form remount. */
+  useEffect(() => {
+    setPartyFormValid(false);
+  }, [partyCardKey]);
+
   if (isLoading || !trip) {
     return (
       <div className="container mx-auto px-4 py-8 md:max-w-6xl md:py-12">
@@ -148,6 +163,7 @@ const SeatSelectionPage = () => {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[min(100%,28rem)_minmax(340px,1fr)] lg:items-start xl:gap-8">
           <Skeleton className="h-88 w-full max-w-md rounded-2xl md:h-104" />
           <aside className="flex w-full min-w-0 flex-col gap-4">
+            <Skeleton className="border-border min-h-44 w-full rounded-xl border" />
             <div className="border-border rounded-xl border p-0 shadow-none">
               <div className="space-y-2 border-b p-6 pb-4">
                 <Skeleton className="h-6 w-48" />
@@ -190,8 +206,8 @@ const SeatSelectionPage = () => {
   const departure = dayjs(trip.departure_time);
 
   const seatsReady = selectedSeats.length > 0;
-
-  const partyCardKey = `${tripId}-${selectedSeatIds.join("|")}`;
+  const boardingReady = Boolean(pickupStation?.id && dropoffStation?.id);
+  const canContinueToPayment = seatsReady && partyFormValid && boardingReady;
 
   return (
     <div className="container mx-auto px-4 py-8 md:max-w-6xl md:py-12">
@@ -259,6 +275,7 @@ const SeatSelectionPage = () => {
         </div>
 
         <aside className="flex w-full min-w-0 flex-col gap-4 lg:sticky lg:top-24">
+          <BoardingStationsCard trip={trip} />
           {partyCount > 0 ? (
             <PassengerPartyCard
               key={partyCardKey}
@@ -266,6 +283,7 @@ const SeatSelectionPage = () => {
               partyCount={partyCount}
               initialTravellers={initialTravellers}
               onSubmitParty={onPartyValid}
+              onPartyFormValidChange={setPartyFormValid}
             />
           ) : null}
 
@@ -280,7 +298,7 @@ const SeatSelectionPage = () => {
             type="submit"
             className="w-full"
             size="lg"
-            disabled={!seatsReady}
+            disabled={!canContinueToPayment}
           >
             {t("passenger.continue")} <ArrowRight className="size-4" />
           </Button>

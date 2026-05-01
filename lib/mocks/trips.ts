@@ -119,6 +119,60 @@ export const MOCK_STATIONS: Record<string, Station> = {
   TAN: station("st-tan", "Tanga", "Tanga Bus Stand", -5.0689, 39.0986),
 };
 
+/**
+ * Stations passengers can board or alight at per city hub. Keys match
+ * `(Station.city as City).name` for mock terminals; fallback logic uses labels
+ * from the route when cities are unknown.
+ */
+export const MOCK_BOARDING_STATIONS_FOR_CITY: Record<string, Station[]> = (() => {
+  const mk = MOCK_STATIONS;
+  const extras = (
+    city: string,
+    id: string,
+    name: string,
+    lat: number,
+    lng: number,
+  ): Station[] => [station(id, city, name, lat, lng)];
+
+  const pair = (
+    stationKey: keyof typeof mk,
+    additional: Station[],
+  ): readonly [string, Station[]] => {
+    const main = mk[stationKey];
+    return [(main.city as City).name, [main, ...additional]];
+  };
+
+  return Object.fromEntries([
+    pair("DAR", [
+      ...extras("Dar es Salaam", "st-dar-mwz", "Mwenge Interchange", -6.7562, 39.2295),
+      ...extras("Dar es Salaam", "st-dar-tege", "Tegeta Bus Terminal", -6.7833, 39.1733),
+    ]),
+    pair("ARU", [
+      ...extras("Arusha", "st-aru-kilij", "Kilimanjaro Road Stand", -3.3692, 36.6942),
+    ]),
+    pair("DOM", [
+      ...extras("Dodoma", "st-dom-mp", "Mlimani Park Corner", -6.1694, 35.7431),
+    ]),
+    pair("MWZ", [
+      ...extras("Mwanza", "st-mwz-km", "Kamunga Bus Corner", -2.5191, 32.9244),
+    ]),
+    pair("MBE", [
+      ...extras("Mbeya", "st-mbe-itu", "Itigi Bus Corner", -8.8944, 33.4464),
+    ]),
+    pair("IRI", [
+      ...extras("Iringa", "st-iri-mm", "Mkwawa Avenue Stand", -7.7655, 35.6933),
+    ]),
+    pair("MOR", [
+      ...extras("Morogoro", "st-mor-kingo", "Kingolwira Junction", -6.8172, 37.6598),
+    ]),
+    pair("TAN", [
+      ...extras("Tanga", "st-tan-mj", "Majengo Bus Corner", -5.0744, 39.0891),
+    ]),
+    pair("MOS", [
+      ...extras("Moshi", "st-mos-sh", "Shanty Town Corner", -3.3489, 37.3464),
+    ]),
+  ]);
+})();
 // ── Routes ───────────────────────────────────────────────────────────────────
 const route = (
   code: string,

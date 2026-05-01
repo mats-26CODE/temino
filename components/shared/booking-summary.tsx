@@ -9,6 +9,7 @@ import { coerceE164PhoneValueForInput } from "@/helpers/booking-phone";
 import { useTranslation } from "@/hooks/use-translation";
 import { formatPhoneNumberIntl, isPossiblePhoneNumber } from "react-phone-number-input";
 import { nationalityLabelForCountry } from "@/components/shared/nationality-country-field";
+import { useBookingStore } from "@/lib/stores/booking-store";
 
 const formatBookingPhoneDisplay = (raw: string): string => {
   const trimmed = raw?.trim() ?? "";
@@ -60,6 +61,8 @@ export const BookingSummary = ({
   className,
 }: BookingSummaryProps) => {
   const { t } = useTranslation();
+  const pickupStation = useBookingStore((s) => s.pickupStation);
+  const dropoffStation = useBookingStore((s) => s.dropoffStation);
   const operatorName =
     trip.bus?.operator?.name ?? trip.operator?.name ?? t("trips.unknownOperator");
   const busClass = trip.bus?.bus_class ?? trip.bus?.bus_type ?? "standard";
@@ -178,6 +181,34 @@ export const BookingSummary = ({
             </p>
           </div>
         </div>
+
+        {(pickupStation?.name ?? dropoffStation?.name) ? (
+          <div className="flex items-start gap-3">
+            <MapPin className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              {pickupStation?.name ? (
+                <div>
+                  <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+                    {t("bookingSummary.boardAt")}
+                  </p>
+                  <p className="text-foreground text-sm leading-snug font-medium">
+                    {pickupStation.name}
+                  </p>
+                </div>
+              ) : null}
+              {dropoffStation?.name ? (
+                <div>
+                  <p className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+                    {t("bookingSummary.arrivalAt")}
+                  </p>
+                  <p className="text-foreground text-sm leading-snug font-medium">
+                    {dropoffStation.name}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         <div className="flex items-start gap-3">
           <Calendar className="text-muted-foreground mt-0.5 size-4 shrink-0" />

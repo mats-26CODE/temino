@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { initialBoardingSelectionForTrip } from "@/lib/boarding-stations";
 
 /**
  * Booking flow store — holds the state of the multi-step booking wizard:
@@ -9,6 +10,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
  *
  * Search `passengers` = minimum available seats when filtering trips; map selection
  * is not capped. Party size must match `selectedSeats.length` before payment.
+ * `pickupStation` / `dropoffStation` refine where the traveller boards and alights.
  */
 interface BookingFlowState {
   origin: string | null;
@@ -18,6 +20,9 @@ interface BookingFlowState {
   passengers: number;
 
   selectedTrip: Trip | null;
+
+  pickupStation: Station | null;
+  dropoffStation: Station | null;
 
   selectedSeats: Seat[];
 
@@ -32,6 +37,8 @@ interface BookingFlowState {
     passengers?: number;
   }) => void;
   setSelectedTrip: (trip: Trip | null) => void;
+  setPickupStation: (station: Station | null) => void;
+  setDropoffStation: (station: Station | null) => void;
   setSelectedSeats: (
     seats: Seat[] | ((prev: Seat[]) => Seat[]),
   ) => void;
@@ -51,6 +58,8 @@ const initialState = {
   date: null,
   passengers: 1,
   selectedTrip: null,
+  pickupStation: null,
+  dropoffStation: null,
   selectedSeats: [] as Seat[],
   partyPassengers: [] as PassengerInfo[],
   passenger: null,
@@ -80,7 +89,26 @@ export const useBookingStore = create<BookingFlowState>()(
             passenger: nextParty[0] ?? null,
           };
         }),
-      setSelectedTrip: (selectedTrip) => set({ selectedTrip, selectedSeats: [] }),
+      setSelectedTrip: (selectedTrip) =>
+        set(() => {
+          if (!selectedTrip) {
+            return {
+              selectedTrip: null,
+              selectedSeats: [],
+              pickupStation: null,
+              dropoffStation: null,
+            };
+          }
+          const { pickup, dropoff } = initialBoardingSelectionForTrip(selectedTrip);
+          return {
+            selectedTrip,
+            selectedSeats: [],
+            pickupStation: pickup,
+            dropoffStation: dropoff,
+          };
+        }),
+      setPickupStation: (pickupStation) => set({ pickupStation }),
+      setDropoffStation: (dropoffStation) => set({ dropoffStation }),
       setSelectedSeats: (selectedSeats) =>
         set((s) => ({
           selectedSeats:
@@ -110,6 +138,18 @@ export const useBookingStore = create<BookingFlowState>()(
         if (!partyPassengers?.length) {
           partyPassengers = incoming.passenger ? [incoming.passenger] : [];
         }
+
+        let pickupStation = incoming.pickupStation ?? null;
+        let dropoffStation = incoming.dropoffStation ?? null;
+        if (
+          incoming.selectedTrip &&
+          (pickupStation == null || dropoffStation == null)
+        ) {
+          const seeded = initialBoardingSelectionForTrip(incoming.selectedTrip);
+          pickupStation = pickupStation ?? seeded.pickup;
+          dropoffStation = dropoffStation ?? seeded.dropoff;
+        }
+
         const {
           selectedSeat: _legacy,
           ...rest
@@ -119,6 +159,8 @@ export const useBookingStore = create<BookingFlowState>()(
           ...(rest as BookingFlowState),
           selectedSeats,
           partyPassengers,
+          pickupStation,
+          dropoffStation,
         };
       },
     },

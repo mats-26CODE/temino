@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useFormContext, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Card,
@@ -24,6 +24,29 @@ export type PassengerPartyCardProps = {
   partyCount: number;
   initialTravellers: PassengerDetailsFormValues[];
   onSubmitParty: (party: PassengerInfo[]) => void;
+  /** Updates when passenger fields satisfy all required validations for the party. */
+  onPartyFormValidChange?: (valid: boolean) => void;
+};
+
+/** Keeps traveller fields mounted for all tabs so RHF + zod validate the whole party. */
+const PartyValidityReporter = ({
+  partyCount,
+  onPartyFormValidChange,
+}: {
+  partyCount: number;
+  onPartyFormValidChange?: (valid: boolean) => void;
+}) => {
+  const { getValues } = useFormContext<PartyFormValues>();
+  const travellers = useWatch({ name: "travellers" }) as PassengerDetailsFormValues[] | undefined;
+
+  useEffect(() => {
+    const r = partyFormSchema(partyCount).safeParse({
+      travellers: travellers ?? getValues("travellers") ?? [],
+    });
+    onPartyFormValidChange?.(r.success);
+  }, [travellers, partyCount, getValues, onPartyFormValidChange]);
+
+  return null;
 };
 
 export const PassengerPartyCard = ({
@@ -31,6 +54,7 @@ export const PassengerPartyCard = ({
   partyCount,
   initialTravellers,
   onSubmitParty,
+  onPartyFormValidChange,
 }: PassengerPartyCardProps) => {
   const { t } = useTranslation();
 
@@ -41,6 +65,8 @@ export const PassengerPartyCard = ({
 
   const form = useForm<PartyFormValues>({
     resolver,
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: { travellers: initialTravellers },
   });
 
@@ -61,6 +87,10 @@ export const PassengerPartyCard = ({
 
   return (
     <FormProvider {...form}>
+      <PartyValidityReporter
+        partyCount={partyCount}
+        onPartyFormValidChange={onPartyFormValidChange}
+      />
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-bold tracking-tight">
@@ -97,7 +127,12 @@ export const PassengerPartyCard = ({
               </div>
 
               {tabIds.map((id, i) => (
-                <TabsContent key={id} value={id} className="mt-0 pb-2 focus-visible:outline-none">
+                <TabsContent
+                  key={id}
+                  value={id}
+                  forceMount
+                  className="mt-0 pb-2 data-[state=inactive]:hidden focus-visible:outline-none"
+                >
                   <PassengerTravellerFields travellerIndex={i} embedded />
                 </TabsContent>
               ))}

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, CreditCard, Smartphone } from "lucide-react";
+import { ArrowLeft, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { BookingSummary } from "@/components/shared/booking-summary";
 import { useBookingStore } from "@/lib/stores/booking-store";
 import { useCreateBooking } from "@/hooks/use-bookings";
@@ -26,6 +28,7 @@ const PaymentPage = () => {
   const setLastBooking = useBookingStore((s) => s.setLastBooking);
 
   const createBooking = useCreateBooking();
+  const [policiesAccepted, setPoliciesAccepted] = useState(false);
 
   useEffect(() => {
     if (!trip || trip.id !== tripId || selectedSeats.length < 1 || !passenger) {
@@ -73,62 +76,89 @@ const PaymentPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 md:max-w-6xl md:py-12">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-muted-foreground mb-4 -ml-2 gap-1"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft className="size-4" /> Back
-      </Button>
+      <div className="mb-4">
+        <Button variant="outline" size="sm" className="gap-1.5 rounded-full" asChild>
+          <Link href={`/trips/${tripId}/seat`}>
+            <ArrowLeft className="size-4" />
+            {t("payment.backToSeatSelection")}
+          </Link>
+        </Button>
+      </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
+      <header className="mb-8 space-y-6">
         <div>
           <h1 className="text-foreground text-3xl font-bold tracking-tight text-balance md:text-4xl">
             {t("payment.title")}
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Powered by {PAYMENT_GATEWAY_NAME}. Mock for now — real integration coming soon.
+          <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
+            {t("payment.subtitle", { gateway: PAYMENT_GATEWAY_NAME })}
           </p>
+        </div>
+      </header>
 
-          <Card className="mt-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[min(100%,28rem)_minmax(340px,1fr)] lg:items-start xl:gap-8">
+        <div className="min-w-0">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-base">Choose payment method</CardTitle>
+              <CardTitle className="text-base">{t("payment.chooseMethod")}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <label className="border-border hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors">
-                <input type="radio" name="method" defaultChecked className="accent-primary" />
+            <CardContent>
+              <div className="border-primary/35 bg-primary/5 flex items-center gap-3 rounded-xl border p-4">
                 <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg">
                   <Smartphone className="size-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-foreground font-medium">Mobile Money</p>
-                  <p className="text-muted-foreground text-xs">M-Pesa, Tigo Pesa, Airtel Money</p>
+                  <p className="text-foreground font-medium">{t("payment.method.mobileMoney")}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t("payment.method.mobileMoneyHint")}
+                  </p>
                 </div>
-              </label>
-
-              <label className="border-border hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors">
-                <input type="radio" name="method" className="accent-primary" disabled />
-                <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-lg">
-                  <CreditCard className="size-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-foreground font-medium">Card</p>
-                  <p className="text-muted-foreground text-xs">Coming soon</p>
-                </div>
-              </label>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+        <aside className="flex w-full min-w-0 flex-col gap-4 lg:sticky lg:top-24">
           <BookingSummary
             trip={trip}
             seats={selectedSeats}
             passenger={passenger}
             party={summaryParty}
           />
-          <Button onClick={onPay} isLoading={createBooking.isPending} className="w-full" size="lg">
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id={`payment-consent-${trip.id}`}
+              checked={policiesAccepted}
+              onCheckedChange={(value) => setPoliciesAccepted(value === true)}
+              className="border-primary/30 bg-primary/5 mt-0.5"
+            />
+            <p className="text-muted-foreground text-sm leading-snug">
+              <label htmlFor={`payment-consent-${trip.id}`} className="inline cursor-pointer">
+                {t("payment.termsAcceptLead")}
+              </label>{" "}
+              <Link
+                href="/terms"
+                className="text-primary font-medium underline-offset-4 hover:underline"
+              >
+                {t("footer.termsOfService")}
+              </Link>
+              {t("payment.consentBetweenPolicies")}
+              <Link
+                href="/privacy"
+                className="text-primary font-medium underline-offset-4 hover:underline"
+              >
+                {t("footer.privacyPolicy")}
+              </Link>
+              {t("payment.termsAcceptTrail")}
+            </p>
+          </div>
+          <Button
+            onClick={onPay}
+            isLoading={createBooking.isPending}
+            className="w-full"
+            size="lg"
+            disabled={!policiesAccepted}
+          >
             {t("payment.payNow")}
           </Button>
         </aside>
