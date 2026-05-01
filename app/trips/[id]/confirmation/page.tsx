@@ -16,8 +16,9 @@ const ConfirmationContent = () => {
   const { t } = useTranslation();
 
   const trip = useBookingStore((s) => s.selectedTrip);
-  const seat = useBookingStore((s) => s.selectedSeat);
+  const selectedSeats = useBookingStore((s) => s.selectedSeats);
   const passenger = useBookingStore((s) => s.passenger);
+  const partyPassengers = useBookingStore((s) => s.partyPassengers);
   const lastBooking = useBookingStore((s) => s.lastBooking);
   const reset = useBookingStore((s) => s.reset);
 
@@ -47,9 +48,20 @@ const ConfirmationContent = () => {
         )}
       </div>
 
-      {trip && seat && (
+      {trip && selectedSeats.length > 0 && (
         <div className="mt-8">
-          <BookingSummary trip={trip} seat={seat} passenger={passenger} />
+          <BookingSummary
+            trip={trip}
+            seats={selectedSeats}
+            passenger={passenger}
+            party={
+              partyPassengers.length >= selectedSeats.length
+                ? partyPassengers.slice(0, selectedSeats.length)
+                : partyPassengers.length > 0
+                  ? partyPassengers
+                  : undefined
+            }
+          />
         </div>
       )}
 

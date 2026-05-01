@@ -1,0 +1,18 @@
+/* Wrap `react-phone-number-input` inside shadcn input shell */
+.booking-phone-field.PhoneInput,
+.booking-phone-field .PhoneInput {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.booking-phone-field .PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding-left: 0.25rem;
+  padding-right: 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+  background: transparent;
+}

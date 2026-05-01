@@ -649,24 +649,35 @@ export const getSearchTripsFromMocks = ({
   route_code,
   origin,
   destination,
+  passengers,
 }: {
   route_code?: string;
   origin?: string;
   destination?: string;
+  /** Only trips with at least this many free seats. */
+  passengers?: number;
 }): Trip[] => {
+  const minFree = Math.max(1, passengers ?? 1);
+  const matchesCapacity = (t: Trip) => (t.available_seats ?? 0) >= minFree;
+
   const all = buildMockTrips();
+  let list: Trip[] = [];
+
   if (route_code) {
     const byCode = all.filter((t) => t.route.route_code === route_code);
-    if (byCode.length > 0) return byCode;
+    if (byCode.length > 0) list = byCode;
   }
-  if (origin && destination) {
+  if (list.length === 0 && origin && destination) {
     const byPair = all.filter(
       (t) => t.route.origin === origin && t.route.destination === destination,
     );
-    if (byPair.length > 0) return byPair;
+    if (byPair.length > 0) list = byPair;
   }
-  if (origin) {
-    return all.filter((t) => t.route.origin === origin);
+  if (list.length === 0 && origin) {
+    list = all.filter((t) => t.route.origin === origin);
   }
-  return all;
+  if (list.length === 0) {
+    list = all;
+  }
+  return list.filter(matchesCapacity);
 };

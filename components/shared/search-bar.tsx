@@ -53,9 +53,14 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
   const { t } = useTranslation();
   const setSearch = useBookingStore((s) => s.setSearch);
 
-  // Persisted booking fields must not seed initial state from the store: on the
-  // client the store rehydrates from localStorage before paint, so the first
-  // client render would disagree with SSR and Radix Select would mismatch.
+  const storeOrigin = useBookingStore((s) => s.origin);
+  const storeDestination = useBookingStore((s) => s.destination);
+  const storeDate = useBookingStore((s) => s.date);
+  const storePassengers = useBookingStore((s) => s.passengers);
+
+  // Local fields mirror the store after hydration so Radix SSR matches initial
+  // client paint; subscribing to store updates keeps compact search on /trips
+  // in sync with URL → store propagation.
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [date, setDate] = useState<Date | undefined>(() => new Date());
@@ -74,7 +79,7 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
       applyFromStore();
     }
     return useBookingStore.persist.onFinishHydration(applyFromStore);
-  }, []);
+  }, [storeOrigin, storeDestination, storeDate, storePassengers]);
 
   const swap = () => {
     const o = origin;
@@ -189,7 +194,7 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {[1, 2, 3, 4, 5, 6].map((n) => (
+              {Array.from({ length: 10 }, (_, idx) => idx + 1).map((n) => (
                 <SelectItem key={n} value={String(n)}>
                   {n} {n === 1 ? "passenger" : "passengers"}
                 </SelectItem>

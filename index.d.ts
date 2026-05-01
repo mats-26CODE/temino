@@ -168,10 +168,28 @@ interface Trip {
 
 type BookingStatus = "pending" | "confirmed" | "paid" | "cancelled" | "expired";
 
+type PassengerGender = "male" | "female";
+type PassengerTravellerType = "adult" | "child";
+
+type PassengerDocumentType =
+  | "nida"
+  | "drivers_licence"
+  | "voters_id"
+  | "passport"
+  | "none";
+
 interface PassengerInfo {
+  /** Stored as concatenated legal name — used when creating bookings API-side. */
   passenger_name: string;
   passenger_phone: string;
   passenger_email?: string;
+  first_name?: string;
+  last_name?: string;
+  nationality?: string;
+  gender?: PassengerGender;
+  traveller_type?: PassengerTravellerType;
+  id_type?: PassengerDocumentType;
+  id_number?: string;
 }
 
 interface Booking extends PassengerInfo {

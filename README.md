@@ -116,9 +116,11 @@ We use App Router **route groups** to share layouts without affecting the URL:
 
 ```
 Landing → (search) → /trips?origin=&destination=&date=
-       → /trips/[id]/seat → /trips/[id]/passenger
-       → /trips/[id]/payment → /trips/[id]/confirmation
+       → /trips/[id]/seat (seat + passenger details) → /trips/[id]/payment
+       → /trips/[id]/confirmation
 ```
+
+`/trips/[id]/passenger` redirects to the seat step for older links.
 
 State across these pages lives in `lib/stores/booking-store.ts` (persisted to `localStorage`), so a refresh mid-flow won't lose progress. The store is `reset()` after confirmation.
 

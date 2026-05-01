@@ -9,7 +9,7 @@ import { BookingSummary } from "@/components/shared/booking-summary";
 import { useBookingStore } from "@/lib/stores/booking-store";
 import { useCreateBooking } from "@/hooks/use-bookings";
 import { useTranslation } from "@/hooks/use-translation";
-import { addCountryCode } from "@/helpers/helpers";
+import { normalizePhoneForBookingApi } from "@/helpers/booking-phone";
 import { PAYMENT_GATEWAY_NAME } from "@/constants/values";
 import { ToastAlert } from "@/config/toast";
 
@@ -20,31 +20,42 @@ const PaymentPage = () => {
   const { t } = useTranslation();
 
   const trip = useBookingStore((s) => s.selectedTrip);
-  const seat = useBookingStore((s) => s.selectedSeat);
+  const selectedSeats = useBookingStore((s) => s.selectedSeats);
   const passenger = useBookingStore((s) => s.passenger);
+  const partyPassengers = useBookingStore((s) => s.partyPassengers);
   const setLastBooking = useBookingStore((s) => s.setLastBooking);
 
   const createBooking = useCreateBooking();
 
   useEffect(() => {
-    if (!trip || trip.id !== tripId || !seat || !passenger) {
+    if (!trip || trip.id !== tripId || selectedSeats.length < 1 || !passenger) {
       router.replace(`/trips/${tripId}/seat`);
     }
-  }, [trip, tripId, seat, passenger, router]);
+  }, [trip, tripId, selectedSeats.length, passenger, router]);
 
-  if (!trip || !seat || !passenger) return null;
+  if (!trip || selectedSeats.length < 1 || !passenger) return null;
 
+  const summaryParty =
+    partyPassengers.length >= selectedSeats.length
+      ? partyPassengers.slice(0, selectedSeats.length)
+      : partyPassengers.length > 0
+        ? partyPassengers
+        : undefined;
+
+  const primarySeat = selectedSeats[0];
   const rawPrice = trip.base_price ?? trip.price ?? 0;
   const price = typeof rawPrice === "string" ? Number.parseFloat(rawPrice) : rawPrice;
-  const amount = (seat.price ?? price).toFixed(2);
+  const amount = selectedSeats
+    .reduce((sum, s) => sum + (typeof s.price === "number" ? s.price : price), 0)
+    .toFixed(2);
 
   const onPay = () => {
     createBooking.mutate(
       {
         trip_id: trip.id,
-        seat_id: seat.id,
+        seat_id: primarySeat.id,
         passenger_name: passenger.passenger_name,
-        passenger_phone: addCountryCode(passenger.passenger_phone),
+        passenger_phone: normalizePhoneForBookingApi(passenger.passenger_phone),
         ...(passenger.passenger_email ? { passenger_email: passenger.passenger_email } : {}),
         amount,
       },
@@ -111,7 +122,12 @@ const PaymentPage = () => {
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          <BookingSummary trip={trip} seat={seat} passenger={passenger} />
+          <BookingSummary
+            trip={trip}
+            seats={selectedSeats}
+            passenger={passenger}
+            party={summaryParty}
+          />
           <Button onClick={onPay} isLoading={createBooking.isPending} className="w-full" size="lg">
             {t("payment.payNow")}
           </Button>

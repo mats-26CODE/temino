@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import dayjs from "dayjs";
@@ -24,7 +24,27 @@ const TripsContent = () => {
   const destination = searchParams.get("destination") ?? undefined;
   const route_code = searchParams.get("route_code") ?? undefined;
   const date = searchParams.get("date") ?? undefined;
-  const passengers = Number(searchParams.get("passengers") ?? 1);
+  const passengersRaw = Number.parseInt(searchParams.get("passengers") ?? "1", 10);
+  const passengers =
+    Number.isFinite(passengersRaw) && passengersRaw >= 1 ? passengersRaw : 1;
+
+  const setSearch = useBookingStore((s) => s.setSearch);
+
+  useEffect(() => {
+    if (!origin || !destination) return;
+
+    const syncFromUrlToStore = () => {
+      setSearch({
+        origin,
+        destination,
+        date: date ?? null,
+        passengers,
+      });
+    };
+
+    if (useBookingStore.persist.hasHydrated()) syncFromUrlToStore();
+    return useBookingStore.persist.onFinishHydration(() => syncFromUrlToStore());
+  }, [origin, destination, date, passengers, setSearch]);
 
   const {
     data: trips,

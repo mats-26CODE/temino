@@ -15,8 +15,9 @@ const RESTROOM = "restroom";
 
 interface SeatMapProps {
   seats: Seat[];
-  selectedSeatId: string | null;
-  onSelect: (seat: Seat) => void;
+  /** All currently selected seat ids (order = passenger tab order). */
+  selectedSeatIds: string[];
+  onToggleSeat: (seat: Seat) => void;
   columns?: number;
   busAmenities?: string[] | null;
 }
@@ -40,8 +41,8 @@ const DeckRow = ({ children }: SeatMapRowProps) => (
  */
 export const SeatMap = ({
   seats,
-  selectedSeatId,
-  onSelect,
+  selectedSeatIds,
+  onToggleSeat,
   columns: _columns = 4,
   busAmenities,
 }: SeatMapProps) => {
@@ -98,14 +99,14 @@ export const SeatMap = ({
   );
 
   const renderSeat = (seat: Seat) => {
-    const isSelected = seat.id === selectedSeatId;
+    const isSelected = selectedSeatIds.includes(seat.id);
     const isTaken = seat.status !== "available";
     return (
       <button
         key={seat.id}
         type="button"
         disabled={isTaken}
-        onClick={() => onSelect(seat)}
+        onClick={() => onToggleSeat(seat)}
         className={cn(
           "flex min-h-14 w-full max-w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 px-1 py-1.5 text-[10px] font-bold tracking-tight transition-all",
           isSelected &&
@@ -160,16 +161,18 @@ export const SeatMap = ({
               {t("seat.legend.available")}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-initial">
             <div
-              className="bg-primary border-primary text-primary-foreground flex size-9 items-center justify-center rounded-lg border-2 shadow-sm"
+              className="bg-primary border-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-lg border-2 shadow-sm"
               aria-hidden
             >
               <Armchair className="h-5 w-5" strokeWidth={2.25} />
             </div>
-            <span className="text-muted-foreground text-xs font-medium">
-              {t("seat.legend.selected")}
-            </span>
+            <div className="min-w-0">
+              <span className="text-muted-foreground text-xs font-medium">
+                {t("seat.legend.selected")} ({selectedSeatIds.length})
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <div
@@ -193,10 +196,10 @@ export const SeatMap = ({
           <div className="mb-0.5 flex w-full min-w-0 items-start justify-between gap-1.5">
             <div className={cn("flex min-h-18 flex-col items-center justify-end gap-1.5", PAIR_W)}>
               <div
-                className="border-border bg-primary/5 text-primary flex h-12 w-12 items-center justify-center rounded-lg border-2"
+                className="border-border bg-primary/5 text-primary flex h-16 w-16 items-center justify-center rounded-xl border-2"
                 title={t("seat.map.door")}
               >
-                <DoorOpen className="size-6" strokeWidth={2} />
+                <DoorOpen className="size-8" strokeWidth={2} />
               </div>
               <span className="text-muted-foreground text-[10px] leading-tight font-medium">
                 {t("seat.map.door")}
@@ -205,10 +208,10 @@ export const SeatMap = ({
             <Aisle />
             <div className={cn("flex min-h-18 flex-col items-center justify-end gap-1.5", PAIR_W)}>
               <div
-                className="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
                 title={t("seat.map.driver")}
               >
-                <GiSteeringWheel className="size-6" strokeWidth={2} />
+                <GiSteeringWheel className="size-8" strokeWidth={2} />
               </div>
               <span className="text-muted-foreground text-[10px] leading-tight font-medium">
                 {t("seat.map.driver")}
@@ -261,9 +264,9 @@ export const SeatMap = ({
             return (
               <DeckRow key={r}>
                 {wc ? (
-                  <>
+                  <div className="flex min-h-14 min-w-16 flex-1 flex-col">
                     <div
-                      className="flex min-h-14 min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-amber-200/80 bg-amber-50/95 py-1.5 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100"
+                      className="flex min-h-14 w-full flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-amber-200/80 bg-amber-50/95 py-1.5 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100"
                       role="img"
                       title={t("seat.map.wc")}
                       aria-label={t("seat.map.wc")}
@@ -273,8 +276,7 @@ export const SeatMap = ({
                         {t("seat.map.wcShort")}
                       </span>
                     </div>
-                    {sB && renderSeat(sB)}
-                  </>
+                  </div>
                 ) : (
                   <>
                     {sA && renderSeat(sA)}
@@ -282,8 +284,22 @@ export const SeatMap = ({
                   </>
                 )}
                 <Aisle />
-                {sC && renderSeat(sC)}
-                {sD && renderSeat(sD)}
+                {wc ? (
+                  <div
+                    className={cn(
+                      "flex shrink-0 gap-1.5",
+                      "[&>button]:w-auto [&>button]:max-w-none [&>button]:min-w-[94px] [&>button]:shrink-0",
+                    )}
+                  >
+                    {sC && renderSeat(sC)}
+                    {sD && renderSeat(sD)}
+                  </div>
+                ) : (
+                  <>
+                    {sC && renderSeat(sC)}
+                    {sD && renderSeat(sD)}
+                  </>
+                )}
               </DeckRow>
             );
           })}

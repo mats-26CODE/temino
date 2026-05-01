@@ -89,6 +89,10 @@ export const useSearchTrips = (params: SearchTripsParams) => {
     enabled,
     retry: false,
     queryFn: async () => {
+      const minPassengers = Math.max(1, passengers ?? 1);
+      const filterByAvailability = (trips: Trip[]) =>
+        trips.filter((t) => (t.available_seats ?? 0) >= minPassengers);
+
       try {
         const { data } = await api.get<Trip[] | ApiPaginated<Trip>>("/api/trips/search/", {
           params: {
@@ -100,11 +104,20 @@ export const useSearchTrips = (params: SearchTripsParams) => {
           },
         });
         const list = Array.isArray(data) ? data : (data?.results ?? []);
-        if (list.length > 0) return enrichTrips(list);
+        if (list.length > 0) return filterByAvailability(enrichTrips(list));
       } catch {
         // Backend not reachable / not yet deployed — drop into the mock set below.
       }
-      return enrichTrips(getSearchTripsFromMocks({ route_code, origin, destination }));
+      return filterByAvailability(
+        enrichTrips(
+          getSearchTripsFromMocks({
+            route_code,
+            origin,
+            destination,
+            passengers: minPassengers,
+          }),
+        ),
+      );
     },
   });
 };
