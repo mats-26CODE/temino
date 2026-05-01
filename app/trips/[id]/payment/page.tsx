@@ -8,12 +8,32 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BookingSummary } from "@/components/shared/booking-summary";
+import { FinalizePaymentModal } from "@/components/shared/finalize-payment-modal";
 import { useBookingStore } from "@/lib/stores/booking-store";
 import { useCreateBooking } from "@/hooks/use-bookings";
+import { useSeatHold } from "@/hooks/use-seat-hold";
 import { useTranslation } from "@/hooks/use-translation";
 import { normalizePhoneForBookingApi } from "@/helpers/booking-phone";
+import { formatCurrency } from "@/helpers/helpers";
 import { PAYMENT_GATEWAY_NAME } from "@/constants/values";
 import { ToastAlert } from "@/config/toast";
+
+const partyRowsForSeats = (
+  seatCount: number,
+  summaryParty: PassengerInfo[] | undefined,
+  lead: PassengerInfo | null,
+): PassengerInfo[] => {
+  if (seatCount < 1) return [];
+  const base =
+    summaryParty !== undefined && summaryParty.length > 0
+      ? summaryParty
+      : lead
+        ? [lead]
+        : [];
+  const first = base[0];
+  if (!first) return [];
+  return Array.from({ length: seatCount }, (_, i) => base[i] ?? first);
+};
 
 const PaymentPage = () => {
   const router = useRouter();
@@ -28,7 +48,10 @@ const PaymentPage = () => {
   const setLastBooking = useBookingStore((s) => s.setLastBooking);
 
   const createBooking = useCreateBooking();
+  const seatHold = useSeatHold();
   const [policiesAccepted, setPoliciesAccepted] = useState(false);
+  const [finalizeOpen, setFinalizeOpen] = useState(false);
+  const [holdExpiresAtIso, setHoldExpiresAtIso] = useState<string | null>(null);
 
   useEffect(() => {
     if (!trip || trip.id !== tripId || selectedSeats.length < 1 || !passenger) {
@@ -52,26 +75,51 @@ const PaymentPage = () => {
     .reduce((sum, s) => sum + (typeof s.price === "number" ? s.price : price), 0)
     .toFixed(2);
 
-  const onPay = () => {
-    createBooking.mutate(
-      {
+  const totalDisplay = formatCurrency(Number.parseFloat(amount), { code: "TZS", decimalDigits: 0 });
+  const finalizeParty = partyRowsForSeats(selectedSeats.length, summaryParty, passenger);
+
+  const onPayNow = async () => {
+    try {
+      const r = await seatHold.mutateAsync({
         trip_id: trip.id,
-        seat_id: primarySeat.id,
-        passenger_name: passenger.passenger_name,
-        passenger_phone: normalizePhoneForBookingApi(passenger.passenger_phone),
-        ...(passenger.passenger_email ? { passenger_email: passenger.passenger_email } : {}),
-        amount,
-      },
-      {
-        onSuccess: (booking) => {
-          setLastBooking(booking);
-          router.push(`/trips/${tripId}/confirmation?booking=${booking.id}`);
+        seat_ids: selectedSeats.map((s) => s.id),
+      });
+      setHoldExpiresAtIso(r.expires_at);
+      setFinalizeOpen(true);
+      ToastAlert.success(t("payment.seatsHeld"));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      ToastAlert.error(message || "Could not reserve seats. Please try again.");
+    }
+  };
+
+  const onFinalizePayment = (payerPhoneE164: string) => {
+    const payerPhone = normalizePhoneForBookingApi(payerPhoneE164);
+    ToastAlert.show({ message: t("payment.finalize.ussdToast") });
+    window.setTimeout(() => {
+      createBooking.mutate(
+        {
+          trip_id: trip.id,
+          seat_id: primarySeat.id,
+          passenger_name: passenger.passenger_name,
+          passenger_phone: payerPhone,
+          ...(passenger.passenger_email ? { passenger_email: passenger.passenger_email } : {}),
+          amount,
         },
-        onError: (err) => {
-          ToastAlert.error(err.message || "Payment failed. Please try again.");
+        {
+          onSuccess: (booking) => {
+            ToastAlert.success(t("confirmation.subtitle"));
+            setFinalizeOpen(false);
+            setHoldExpiresAtIso(null);
+            setLastBooking(booking);
+            router.push(`/trips/${tripId}/confirmation?booking=${booking.id}`);
+          },
+          onError: (err) => {
+            ToastAlert.error(err.message || "Payment failed. Please try again.");
+          },
         },
-      },
-    );
+      );
+    }, 750);
   };
 
   return (
@@ -153,8 +201,8 @@ const PaymentPage = () => {
             </p>
           </div>
           <Button
-            onClick={onPay}
-            isLoading={createBooking.isPending}
+            onClick={onPayNow}
+            isLoading={seatHold.isPending}
             className="w-full"
             size="lg"
             disabled={!policiesAccepted}
@@ -163,6 +211,22 @@ const PaymentPage = () => {
           </Button>
         </aside>
       </div>
+
+      <FinalizePaymentModal
+        open={finalizeOpen}
+        onOpenChange={(open) => {
+          setFinalizeOpen(open);
+          if (!open) setHoldExpiresAtIso(null);
+        }}
+        trip={trip}
+        seats={selectedSeats}
+        party={finalizeParty}
+        holdExpiresAtIso={holdExpiresAtIso}
+        defaultPayerPhone={passenger.passenger_phone}
+        totalAmountFormatted={totalDisplay}
+        isSubmitting={createBooking.isPending}
+        onFinalizePayment={onFinalizePayment}
+      />
     </div>
   );
 };

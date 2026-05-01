@@ -2,7 +2,6 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { ToastAlert } from "@/config/toast";
 
 export const BOOKINGS_QUERY_KEY = ["bookings"] as const;
 
@@ -15,15 +14,18 @@ export const useCreateBooking = () => {
 
   return useMutation<Booking, Error, CreateBookingPayload>({
     mutationFn: async (payload) => {
-      const { data } = await api.post<Booking>("/api/bookings/create/", payload);
-      return data;
+      const { data } = await api.post<Booking | Record<string, unknown>>(
+        "/api/bookings/create/",
+        payload,
+      );
+      const body = data && typeof data === "object" ? data : {};
+      if ("data" in body && body.data && typeof body.data === "object") {
+        return body.data as Booking;
+      }
+      return data as Booking;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: BOOKINGS_QUERY_KEY });
-      ToastAlert.success("Booking confirmed!");
-    },
-    onError: (error) => {
-      ToastAlert.error(error.message || "Failed to create booking");
     },
   });
 };
