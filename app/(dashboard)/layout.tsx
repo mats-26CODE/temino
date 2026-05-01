@@ -15,6 +15,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (loading) return;
+    // check if the user is authenticated
     if (!user) router.replace("/login");
   }, [user, loading, router]);
 
@@ -33,7 +34,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <SidebarProvider>
           <DashboardSidebar />
           <SidebarInset className="flex w-full flex-col">
-            <main className="border-border/40 w-full flex-1 overflow-auto border-t bg-gradient-to-b from-background to-muted/20 p-6 md:p-8">
+            <main className="border-border/40 from-background to-muted/20 w-full flex-1 overflow-auto border-t bg-gradient-to-b p-6 md:p-8">
               <div className="mx-auto w-full max-w-6xl">{children}</div>
             </main>
             <Footer />
