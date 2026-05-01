@@ -40,7 +40,9 @@ export const useSendOtp = () =>
     },
   });
 
-export const useVerifyOtp = (options?: { redirect?: string }) => {
+export const useVerifyOtp = (
+  options?: { redirect?: string; suppressVerifyErrorToast?: boolean },
+) => {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
 
@@ -68,7 +70,9 @@ export const useVerifyOtp = (options?: { redirect?: string }) => {
       router.push(options?.redirect ?? "/dashboard");
     },
     onError: (error: Error) => {
-      ToastAlert.error(error.message || "Invalid OTP. Please try again.");
+      if (!options?.suppressVerifyErrorToast) {
+        ToastAlert.error(error.message || "Invalid OTP. Please try again.");
+      }
     },
   });
 };

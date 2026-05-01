@@ -53,9 +53,10 @@ export const validatePhoneNumber = (phoneNumber: string): { isValid: boolean; er
  */
 export const addCountryCode = (phoneNumber: string): string => {
   const cleanedNumber = phoneNumber.replace(/[^0-9+]/g, "");
-  if (cleanedNumber.startsWith("255")) return cleanedNumber;
-  if (cleanedNumber.startsWith("0")) return "255" + cleanedNumber.slice(1);
-  return "255" + cleanedNumber;
+  const normalized = cleanedNumber.startsWith("+") ? cleanedNumber.slice(1) : cleanedNumber;
+  if (normalized.startsWith("255")) return normalized;
+  if (normalized.startsWith("0")) return "255" + normalized.slice(1);
+  return "255" + normalized;
 };
 
 /**

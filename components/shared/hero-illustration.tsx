@@ -15,7 +15,7 @@ interface MiniTrip {
   className?: string;
 }
 
-const MINI_TRIPS: MiniTrip[] = [
+export const MINI_TRIPS: MiniTrip[] = [
   {
     operator: "Kilimanjaro Express",
     origin: "Dar es Salaam",
@@ -51,7 +51,7 @@ const MINI_TRIPS: MiniTrip[] = [
   },
 ];
 
-const MiniTripCard = ({ trip }: { trip: MiniTrip }) => (
+export const MiniTripCard = ({ trip }: { trip: MiniTrip }) => (
   <div
     className={cn(
       "bg-card/95 ring-border/40 supports-backdrop-filter:bg-card/80 w-full max-w-[20rem] rounded-2xl p-3 shadow-xl ring-1 transition-transform hover:scale-[1.02] supports-backdrop-filter:backdrop-blur",
@@ -132,7 +132,7 @@ export const HeroIllustration = () => {
       </div>
 
       {/* Stacked mini cards */}
-      <div className="absolute -top-10 inset-0 flex flex-col items-center justify-center gap-3 px-4 md:gap-2 md:px-8">
+      <div className="absolute inset-0 -top-10 flex flex-col items-center justify-center gap-3 px-4 md:gap-2 md:px-8">
         {MINI_TRIPS.map((trip) => (
           <MiniTripCard key={`${trip.operator}-${trip.destination}`} trip={trip} />
         ))}

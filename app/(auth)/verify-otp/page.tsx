@@ -2,11 +2,16 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 import Logo from "@/components/shared/logo";
+import { AuthAsideArtwork } from "@/components/shared/auth-aside-artwork";
+import { Button } from "@/components/ui/button";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from "@/components/ui/input-otp";
 import { useTranslation } from "@/hooks/use-translation";
 import { useSendOtp, useVerifyOtp } from "@/hooks/use-auth";
 import { useOtpCountdown } from "@/hooks/use-otp-countdown";
@@ -21,9 +26,12 @@ const VerifyOtpContent = () => {
   const { t } = useTranslation();
 
   const [otp, setOtp] = useState("");
-  const verifyOtp = useVerifyOtp({ redirect });
+  const [formError, setFormError] = useState<string | null>(null);
+  const verifyOtp = useVerifyOtp({ redirect, suppressVerifyErrorToast: true });
   const sendOtp = useSendOtp();
   const { countdown, canResend, startCountdown } = useOtpCountdown(60);
+
+  const displayedPhone = formatPhoneForDisplay(phone);
 
   useEffect(() => {
     if (!phone) {
@@ -33,7 +41,27 @@ const VerifyOtpContent = () => {
     startCountdown();
   }, [phone, router, startCountdown]);
 
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    if (!phone.trim()) {
+      setFormError(t("auth.verifyOtp.phoneRequired"));
+      return;
+    }
+    if (otp.length < 6) {
+      setFormError(t("auth.verifyOtp.fillAllFields"));
+      return;
+    }
+    verifyOtp.mutate({ phone, otp, fullName });
+  };
+
   const onResend = () => {
+    if (!phone.trim()) {
+      setFormError(t("auth.verifyOtp.phoneRequired"));
+      return;
+    }
+    if (!canResend) return;
+    setFormError(null);
     sendOtp.mutate(
       { phone },
       {
@@ -42,79 +70,101 @@ const VerifyOtpContent = () => {
     );
   };
 
-  const onVerify = (code: string) => {
-    if (code.length !== 6) return;
-    verifyOtp.mutate({ phone, otp: code, fullName });
-  };
+  const hasMutationError = verifyOtp.isError || sendOtp.isError;
+  const errorMessage =
+    formError ??
+    (verifyOtp.error instanceof Error
+      ? verifyOtp.error.message
+      : sendOtp.error instanceof Error
+        ? sendOtp.error.message
+        : t("auth.verifyOtp.error"));
+  const hasError = Boolean(formError) || hasMutationError;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <div className="mb-8">
-        <Logo size="md" />
+    <div className="flex min-h-svh lg:h-svh lg:min-h-0 lg:overflow-hidden">
+      <div className="bg-background flex min-h-0 flex-1 flex-col overflow-y-auto lg:h-full lg:min-h-0">
+        <div className="flex flex-1 items-center justify-center p-8">
+          <div className="flex w-full max-w-md flex-col items-center space-y-8">
+            <div className="text-center">
+              <Logo size="md" />
+            </div>
+
+            <div className="space-y-2 text-center">
+              <h1 className="text-foreground text-3xl font-bold">{t("auth.verifyOtp.title")}</h1>
+              <p className="text-muted-foreground">
+                {t("auth.verifyOtp.subtitle")} <strong>{displayedPhone}</strong>
+              </p>
+            </div>
+
+            {hasError && (
+              <div className="text-destructive bg-destructive/10 border-destructive/20 w-fit max-w-full rounded-md border p-3 text-center text-sm">
+                {errorMessage}
+              </div>
+            )}
+
+            <form onSubmit={onSubmit} className="flex w-full flex-col items-center space-y-6">
+              <div className="flex flex-col items-center space-y-3">
+                <InputOTP
+                  maxLength={6}
+                  pattern={REGEXP_ONLY_DIGITS}
+                  value={otp}
+                  onChange={(v) => {
+                    setOtp(v);
+                    setFormError(null);
+                    verifyOtp.reset();
+                    sendOtp.reset();
+                  }}
+                  disabled={verifyOtp.isPending}
+                  autoFocus
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                  </InputOTPGroup>
+                  <InputOTPSeparator />
+                  <InputOTPGroup>
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+                <p className="text-muted-foreground text-center text-xs">{t("auth.verifyOtp.codeHint")}</p>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={!phone.trim() || otp.length < 6}
+                isLoading={verifyOtp.isPending}
+              >
+                {t("auth.verifyOtp.verify")}
+              </Button>
+            </form>
+
+            <p className="text-muted-foreground text-center text-sm">
+              {t("auth.verifyOtp.noCode")}{" "}
+              {canResend ? (
+                <button
+                  type="button"
+                  onClick={onResend}
+                  disabled={sendOtp.isPending}
+                  className="text-primary font-medium hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {sendOtp.isPending ? t("auth.verifyOtp.sending") : t("auth.verifyOtp.resend")}
+                </button>
+              ) : (
+                <span className="text-muted-foreground">
+                  {t("auth.verifyOtp.resendIn", { seconds: String(countdown) })}
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground -ml-2 w-fit gap-1"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="size-3.5" /> Back
-          </Button>
-          <CardTitle className="text-3xl font-bold tracking-tight text-balance">
-            {t("auth.otpTitle")}
-          </CardTitle>
-          <p className="text-muted-foreground text-base">
-            {t("auth.otpDesc", { phone: formatPhoneForDisplay(phone) })}
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="flex justify-center">
-            <InputOTP
-              maxLength={6}
-              value={otp}
-              onChange={(v) => {
-                setOtp(v);
-                if (v.length === 6) onVerify(v);
-              }}
-            >
-              <InputOTPGroup>
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <InputOTPSlot key={i} index={i} />
-                ))}
-              </InputOTPGroup>
-            </InputOTP>
-          </div>
-
-          <Button
-            className="w-full"
-            size="lg"
-            isLoading={verifyOtp.isPending}
-            onClick={() => onVerify(otp)}
-            disabled={otp.length !== 6}
-          >
-            {t("auth.continue")}
-          </Button>
-
-          <div className="text-center text-sm">
-            {canResend ? (
-              <button
-                type="button"
-                onClick={onResend}
-                className="text-primary font-medium underline-offset-4 hover:underline"
-              >
-                {t("auth.otpResend")}
-              </button>
-            ) : (
-              <span className="text-muted-foreground">
-                {t("auth.otpResendIn", { seconds: countdown })}
-              </span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <AuthAsideArtwork />
     </div>
   );
 };
