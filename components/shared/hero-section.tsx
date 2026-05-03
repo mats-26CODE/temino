@@ -24,8 +24,8 @@ export const HeroSection = () => {
         <div className="grid items-center gap-5 md:grid-cols-2 md:gap-10 md:gap-y-6">
           {/* Left: copy — first on mobile so search can sit directly under the intro */}
           <div className="flex flex-col gap-3 md:gap-6">
-            <div className="space-y-1.5 md:space-y-2">
-              <h1 className="font-display text-foreground text-4xl text-balance md:text-6xl lg:text-7xl">
+            <div className="space-y-2 md:space-y-2">
+              <h1 className="font-display text-foreground text-5xl text-balance md:text-6xl lg:text-7xl">
                 {t("landing.headline")}
               </h1>
               <p className="text-muted-foreground max-w-xl text-base leading-relaxed text-pretty md:text-xl">
