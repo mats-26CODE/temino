@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Figtree, Pacifico } from "next/font/google";
+import { Cherry_Bomb_One, Figtree, Pacifico } from "next/font/google";
 import "./globals.css";
 import Providers from "@/providers/providers";
 import { APP_NAME, APP_TAGLINE } from "@/constants/values";
@@ -16,6 +16,13 @@ const pacifico = Pacifico({
   variable: "--font-pacifico",
   weight: "400",
   subsets: ["latin"],
+});
+
+const cherryBombOne = Cherry_Bomb_One({
+  variable: "--font-cherry-bomb-one",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -34,7 +41,7 @@ const RootLayout = ({
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${figtree.variable} ${pacifico.variable}`}
+      className={`${figtree.variable} ${pacifico.variable} ${cherryBombOne.variable}`}
     >
       <head>
         <meta name="apple-mobile-web-app-title" content={APP_NAME} />

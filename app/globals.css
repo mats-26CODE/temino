@@ -9,6 +9,9 @@
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: var(--font-figtree), "Figtree Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-brand: var(--font-pacifico);
+  /* Logo wordmark + display accents — variable from `Cherry_Bomb_One` in app/layout.tsx */
+  --font-wordmark:
+    var(--font-cherry-bomb-one), "Cherry Bomb One", ui-sans-serif, system-ui, sans-serif;
   --tracking-tighter: -0.04em;
   --tracking-tight: -0.025em;
   --color-background: var(--background);

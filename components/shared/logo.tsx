@@ -1,14 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Cherry_Bomb_One } from "next/font/google";
 import { APP_NAME } from "@/constants/values";
 import { cn } from "@/lib/utils";
-
-const cherryBombWordmark = Cherry_Bomb_One({
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
 
 /** Icon is sized to sit closer to the Cherry Bomb wordmark cap height (not tiny vs text). */
 const SIZE = {
@@ -32,7 +25,7 @@ const Logo = ({ className, size = "md", variant = "full", href = "/" }: LogoProp
   return (
     <Link
       href={href}
-      className={cn("inline-flex items-center gap-1", className)}
+      className={cn("inline-flex items-center gap-2", className)}
       aria-label={APP_NAME}
     >
       <span className="relative inline-flex shrink-0 overflow-hidden rounded-md">
@@ -46,9 +39,7 @@ const Logo = ({ className, size = "md", variant = "full", href = "/" }: LogoProp
         />
       </span>
       {variant === "full" && (
-        <span
-          className={cn(cherryBombWordmark.className, "text-primary -mt-1 uppercase", sizes.text)}
-        >
+        <span className={cn("font-wordmark text-primary -mt-1 uppercase", sizes.text)}>
           {wordmark}
         </span>
       )}
