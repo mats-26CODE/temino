@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Ticket, User, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,21 +16,22 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { DASHBOARD_NAV_ACCOUNT, DASHBOARD_NAV_MAIN } from "@/constants/dashboard-nav";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
 
 export const DashboardSidebar = () => {
   const pathname = usePathname();
   const { state } = useSidebar();
-  const isActive = (path: string) => {
-    if (path === "/dashboard") return pathname === "/dashboard" || pathname === "/dashboard/";
-    return pathname.startsWith(path);
-  };
+  const { t } = useTranslation();
   const showLabels = state !== "collapsed";
 
   return (
     <Sidebar variant="floating" collapsible="icon">
       <SidebarHeader className="border-sidebar-border flex flex-row items-center justify-between border-b p-4">
-        <span className={cn("font-semibold", state === "collapsed" && "hidden")}>Account</span>
+        <span className={cn("font-semibold", state === "collapsed" && "hidden")}>
+          {t("dashboard.accountTitle")}
+        </span>
         <SidebarTrigger className="shrink-0 group-data-[collapsible=icon]:-ml-1.5" />
       </SidebarHeader>
 
@@ -42,62 +42,44 @@ export const DashboardSidebar = () => {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/dashboard")} tooltip="Overview">
-                  <Link href="/dashboard">
-                    <LayoutDashboard className="size-4" />
-                    <span>Overview</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/dashboard/trips")}
-                  tooltip="My trips"
-                >
-                  <Link href="/dashboard/trips">
-                    <Ticket className="size-4" />
-                    <span>My trips</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {DASHBOARD_NAV_MAIN.map(({ href, labelKey, Icon, isActive }) => (
+                <SidebarMenuItem key={href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(pathname)}
+                    tooltip={t(labelKey)}
+                  >
+                    <Link href={href}>
+                      <Icon className="size-4" />
+                      <span>{t(labelKey)}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         <SidebarGroup>
           <SidebarGroupLabel className={cn("text-xs uppercase", !showLabels && "sr-only")}>
-            Account
+            {t("dashboard.accountTitle")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/dashboard/profile")}
-                  tooltip="Profile"
-                >
-                  <Link href="/dashboard/profile">
-                    <User className="size-4" />
-                    <span>Profile</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/dashboard/settings")}
-                  tooltip="Settings"
-                >
-                  <Link href="/dashboard/settings">
-                    <Settings className="size-4" />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {DASHBOARD_NAV_ACCOUNT.map(({ href, labelKey, Icon, isActive }) => (
+                <SidebarMenuItem key={href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(pathname)}
+                    tooltip={t(labelKey)}
+                  >
+                    <Link href={href}>
+                      <Icon className="size-4" />
+                      <span>{t(labelKey)}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

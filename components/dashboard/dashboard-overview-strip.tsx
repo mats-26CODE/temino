@@ -16,10 +16,10 @@ type DashboardOverviewStripProps = {
 
 const MiniStat = ({ label, value }: { label: string; value: number }) => (
   <div className="flex flex-col justify-center gap-1 px-4 py-2.5 sm:min-h-[72px] sm:px-5 sm:py-3">
-    <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-[0.12em]">
+    <span className="text-muted-foreground text-[11px] font-semibold tracking-[0.12em] uppercase">
       {label}
     </span>
-    <span className="text-foreground text-xl font-semibold tracking-tight tabular-nums leading-none sm:text-2xl">
+    <span className="text-foreground text-xl leading-none font-semibold tracking-tight tabular-nums sm:text-2xl">
       {value}
     </span>
   </div>
@@ -47,15 +47,15 @@ export const DashboardOverviewStrip = ({
         </>
       ) : (
         <>
-          <div className="divide-border/50 bg-muted/15 grid grid-cols-2 divide-x rounded-2xl border border-border/50 shadow-sm">
+          <div className="divide-border/50 bg-muted/15 border-border/50 grid grid-cols-2 divide-x rounded-2xl border shadow-sm">
             <MiniStat label={t("dashboard.upcomingTrips")} value={upcomingCount} />
             <MiniStat label={t("dashboard.archivedTrips")} value={pastCount} />
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/[0.07] via-background to-muted/40 p-[1px] shadow-sm dark:from-primary/[0.12] dark:via-background dark:to-muted/30">
-            <div className="bg-background/80 flex h-full flex-col justify-center gap-3 rounded-[15px] px-4 py-3.5 backdrop-blur-[2px] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 sm:py-4 dark:bg-background/70">
+          <div className="border-primary/15 from-primary/[0.07] via-background to-muted/40 dark:from-primary/[0.12] dark:via-background dark:to-muted/30 relative overflow-hidden rounded-2xl border bg-gradient-to-br p-[1px] shadow-sm">
+            <div className="bg-background/80 dark:bg-background/70 flex h-full flex-col justify-center gap-3 rounded-[15px] px-4 py-3.5 backdrop-blur-[2px] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 sm:py-4">
               <div className="min-w-0 space-y-0.5">
-                <div className="text-primary inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em]">
+                <div className="text-primary inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] uppercase">
                   <Ticket className="size-3.5" strokeWidth={2.5} />
                   {t("dashboard.quickBook")}
                 </div>

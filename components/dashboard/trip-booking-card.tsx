@@ -19,10 +19,11 @@ const formatBusClass = (bus: Bus | null | undefined) =>
 const busPrimaryLabel = (bus: Bus | null | undefined) =>
   bus?.bus_number?.trim() || bus?.plate_number || "Bus";
 
+/** Matches `DashboardOverviewStrip` stat / quick-book cards: `rounded-2xl border shadow-sm`. */
 const shellClass = (archived: boolean | undefined, className?: string) =>
   cn(
-    "bg-card/95 ring-border/40 supports-backdrop-filter:bg-card/80 w-full rounded-2xl p-3 shadow-md ring-1 transition-transform hover:scale-[1.02] supports-backdrop-filter:backdrop-blur",
-    archived && "opacity-90 ring-muted-foreground/35",
+    "bg-muted/15 border-border/50 w-full rounded-2xl border p-3 shadow-sm transition-transform hover:scale-[1.02]",
+    archived && "opacity-90 border-muted-foreground/35",
     className,
   );
 

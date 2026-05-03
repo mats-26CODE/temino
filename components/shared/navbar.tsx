@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, LogOut, Bus, Plane } from "lucide-react";
+import { ArrowRight, Bus, LogOut, Menu, Plane, Search } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser, useLogout } from "@/hooks/use-auth";
 import { useTranslation } from "@/hooks/use-translation";
+import { DASHBOARD_NAV_ACCOUNT, DASHBOARD_NAV_MAIN } from "@/constants/dashboard-nav";
 import { cn } from "@/lib/utils";
 import Logo from "./logo";
 import { ThemeToggle } from "./theme-toggle";
@@ -166,56 +167,109 @@ const NavBar = () => {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full! p-0 sm:max-w-full!">
-              <SheetHeader className="px-6 pt-6 pb-4">
+            <SheetContent
+              side="right"
+              className="flex h-full w-full! max-h-dvh flex-col gap-0 overflow-hidden p-0 sm:max-w-full!"
+            >
+              <SheetHeader className="shrink-0 border-b px-6 pt-6 pb-4">
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col gap-4 px-6 pb-6">
-                {/* Mobile mode tabs */}
-                <div className="bg-muted/60 ring-border/60 inline-flex items-center justify-around gap-0.5 rounded-full p-1 ring-1">
-                  {MODES.map((mode) => {
-                    const Icon = mode.icon;
-                    return (
-                      <button
-                        key={mode.key}
-                        type="button"
-                        disabled={mode.soon}
-                        className={cn(
-                          "inline-flex flex-1 items-center justify-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium",
-                          mode.active
-                            ? "bg-background text-foreground shadow-sm"
-                            : "text-muted-foreground",
-                          mode.soon && "opacity-60",
-                        )}
-                      >
-                        <Icon className={cn("size-3.5", mode.active && "text-primary")} />
-                        {t(`nav.modes.${mode.key}`)}
-                      </button>
-                    );
-                  })}
+
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
+                  <div className="flex flex-col gap-4 pb-2">
+                    {/* Mobile mode tabs */}
+                    <div className="bg-muted/60 ring-border/60 inline-flex items-center justify-around gap-0.5 rounded-full p-1 ring-1">
+                      {MODES.map((mode) => {
+                        const Icon = mode.icon;
+                        return (
+                          <button
+                            key={mode.key}
+                            type="button"
+                            disabled={mode.soon}
+                            className={cn(
+                              "inline-flex flex-1 items-center justify-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium",
+                              mode.active
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground",
+                              mode.soon && "opacity-60",
+                            )}
+                          >
+                            <Icon className={cn("size-3.5", mode.active && "text-primary")} />
+                            {t(`nav.modes.${mode.key}`)}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {user ? (
+                      <div className="space-y-4 border-b pb-4">
+                        <Button
+                          asChild
+                          size="sm"
+                          className="group/btn w-full shrink-0 gap-2 rounded-full px-5 shadow-sm"
+                        >
+                          <Link href="/" onClick={handleLinkClick}>
+                            <Search className="size-4 opacity-90" strokeWidth={2.25} />
+                            {t("dashboard.searchTrips")}
+                            <ArrowRight className="size-4 transition-transform group-hover/btn:translate-x-0.5" />
+                          </Link>
+                        </Button>
+
+                        <div>
+                          <p className="text-muted-foreground mb-2 text-xs font-semibold uppercase tracking-wide">
+                            {t("dashboard.accountTitle")}
+                          </p>
+                          <nav className="flex flex-col gap-0.5" aria-label={t("nav.dashboard")}>
+                            {[...DASHBOARD_NAV_MAIN, ...DASHBOARD_NAV_ACCOUNT].map(
+                              ({ href, labelKey, Icon, isActive }) => {
+                                const active = isActive(pathname);
+                                return (
+                                  <Link
+                                    key={href}
+                                    href={href}
+                                    onClick={handleLinkClick}
+                                    className={cn(
+                                      "text-foreground flex items-center gap-3 rounded-lg px-2 py-3 text-base transition-colors",
+                                      active
+                                        ? "bg-muted text-primary font-semibold"
+                                        : "hover:bg-muted/80",
+                                    )}
+                                  >
+                                    <Icon className="size-4 shrink-0 opacity-90" />
+                                    {t(labelKey)}
+                                  </Link>
+                                );
+                              },
+                            )}
+                          </nav>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <Link
+                      href="/support"
+                      onClick={handleLinkClick}
+                      className="text-foreground py-2 text-base"
+                    >
+                      {t("nav.help")}
+                    </Link>
+                    <Link
+                      href="/about-us"
+                      onClick={handleLinkClick}
+                      className="text-foreground py-2 text-base"
+                    >
+                      {t("footer.aboutUs")}
+                    </Link>
+                  </div>
                 </div>
 
-                <Link
-                  href="/support"
-                  onClick={handleLinkClick}
-                  className="text-foreground py-2 text-base"
-                >
-                  {t("nav.help")}
-                </Link>
-                <Link
-                  href="/about-us"
-                  onClick={handleLinkClick}
-                  className="text-foreground py-2 text-base"
-                >
-                  {t("footer.aboutUs")}
-                </Link>
-
-                <div className="mt-4 space-y-4 border-t pt-4">
-                  <div className="flex items-center justify-between">
+                <div className="bg-background shrink-0 space-y-4 border-t px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                  <div className="flex items-center justify-between gap-3">
                     <span className="text-muted-foreground text-sm">Theme</span>
                     <ThemeToggle />
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-3">
                     <span className="text-muted-foreground text-sm">{t("nav.language")}</span>
                     <LanguageToggle />
                   </div>
