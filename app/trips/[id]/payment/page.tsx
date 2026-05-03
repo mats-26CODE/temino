@@ -25,11 +25,7 @@ const partyRowsForSeats = (
 ): PassengerInfo[] => {
   if (seatCount < 1) return [];
   const base =
-    summaryParty !== undefined && summaryParty.length > 0
-      ? summaryParty
-      : lead
-        ? [lead]
-        : [];
+    summaryParty !== undefined && summaryParty.length > 0 ? summaryParty : lead ? [lead] : [];
   const first = base[0];
   if (!first) return [];
   return Array.from({ length: seatCount }, (_, i) => base[i] ?? first);
@@ -150,7 +146,7 @@ const PaymentPage = () => {
             <CardHeader>
               <CardTitle className="text-base">{t("payment.chooseMethod")}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="-mt-4">
               <div className="border-primary/35 bg-primary/5 flex items-center gap-3 rounded-xl border p-4">
                 <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg">
                   <Smartphone className="size-5" />

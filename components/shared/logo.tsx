@@ -1,14 +1,21 @@
-import React from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Bus } from "lucide-react";
+import { Cherry_Bomb_One } from "next/font/google";
 import { APP_NAME } from "@/constants/values";
 import { cn } from "@/lib/utils";
 
+const cherryBombWordmark = Cherry_Bomb_One({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+/** Icon is sized to sit closer to the Cherry Bomb wordmark cap height (not tiny vs text). */
 const SIZE = {
-  xs: { icon: "size-5", text: "text-base" },
-  sm: { icon: "size-6", text: "text-lg" },
-  md: { icon: "size-8", text: "text-2xl" },
-  lg: { icon: "size-10", text: "text-3xl" },
+  xs: { imgPx: 32, imgClass: "size-9", text: "text-lg leading-none" },
+  sm: { imgPx: 44, imgClass: "size-12", text: "text-xl leading-none" },
+  md: { imgPx: 56, imgClass: "size-14", text: "text-2xl leading-none" },
+  lg: { imgPx: 64, imgClass: "size-16", text: "text-3xl leading-none" },
 } as const;
 
 interface LogoProps {
@@ -20,13 +27,30 @@ interface LogoProps {
 
 const Logo = ({ className, size = "md", variant = "full", href = "/" }: LogoProps) => {
   const sizes = SIZE[size];
+  const wordmark = APP_NAME.toLowerCase();
+
   return (
-    <Link href={href} className={cn("inline-flex items-center gap-2", className)}>
-      <span className="bg-primary text-primary-foreground inline-flex items-center justify-center rounded-lg p-1.5 shadow-sm">
-        <Bus className={sizes.icon} />
+    <Link
+      href={href}
+      className={cn("inline-flex items-center gap-1", className)}
+      aria-label={APP_NAME}
+    >
+      <span className="relative inline-flex shrink-0 overflow-hidden rounded-md">
+        <Image
+          src="/temino_logo_icon.png"
+          alt="Logo"
+          width={sizes.imgPx}
+          height={sizes.imgPx}
+          className={cn("object-contain", sizes.imgClass)}
+          priority={false}
+        />
       </span>
       {variant === "full" && (
-        <span className={cn("font-semibold tracking-tight", sizes.text)}>{APP_NAME}</span>
+        <span
+          className={cn(cherryBombWordmark.className, "text-primary -mt-1 uppercase", sizes.text)}
+        >
+          {wordmark}
+        </span>
       )}
     </Link>
   );

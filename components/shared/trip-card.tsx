@@ -37,23 +37,23 @@ export const TripCardSkeleton = ({ className }: { className?: string }) => (
     className={cn("border-border/60 group overflow-hidden border p-0 shadow-none", className)}
     aria-hidden
   >
-    <CardContent className="space-y-4 p-5">
+    <CardContent className="space-y-4 p-4 sm:p-5">
       {/* Header — avatar + operator (one line) · duration */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <Skeleton className="size-10 shrink-0 rounded-full" />
-          <div className="min-w-0 space-y-0">
+          <div className="min-w-0 flex-1 space-y-0">
             <Skeleton className="h-5 w-44 max-w-full" />
           </div>
         </div>
-        <Skeleton className="mt-0.5 h-4 w-32 shrink-0" />
+        <Skeleton className="h-4 w-32 shrink-0 sm:ml-auto sm:self-start" />
       </div>
 
       {/* Journey — big times + rail · station + date row */}
       <div className="space-y-2.5">
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
           <Skeleton className="h-9 w-17 shrink-0 md:h-11 md:w-19" />
-          <div className="relative h-10 min-w-0 flex-1">
+          <div className="relative h-10 min-w-0 flex-1 basis-0">
             <Skeleton className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full" />
             <div className="relative flex h-full w-full items-center justify-between">
               <Skeleton className="size-8 shrink-0 rounded-full" />
@@ -62,24 +62,23 @@ export const TripCardSkeleton = ({ className }: { className?: string }) => (
           </div>
           <Skeleton className="h-9 w-17 shrink-0 md:h-11 md:w-19" />
         </div>
-        <div className="flex items-baseline justify-between gap-6">
-          <Skeleton className="h-4 max-w-[48%] min-w-0 flex-1" />
-          <Skeleton className="h-4 max-w-[48%] min-w-0 flex-1" />
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 md:gap-6">
+          <Skeleton className="h-4 min-w-0 flex-1 sm:max-w-[48%]" />
+          <Skeleton className="h-4 min-w-0 flex-1 sm:max-w-[48%]" />
         </div>
       </div>
 
       {/* Footer — bus type + amenity pills · price block + CTA (gap-8 like TripCard) */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Skeleton className="h-7 w-22 shrink-0 rounded-md" />
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-7 w-18 shrink-0 rounded-full" />
           ))}
         </div>
-        <div className="flex shrink-0 items-center gap-8">
-          {/* Single bar: large price + small “/ includes fees” on one baseline (see TripCard) */}
-          <Skeleton className="h-8 w-36 shrink-0 md:h-9 md:w-40" />
-          <Skeleton className="h-9 w-44 shrink-0 rounded-md" />
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2 sm:justify-end md:shrink-0 md:gap-4 lg:gap-8">
+          <Skeleton className="h-8 w-36 shrink-0 sm:h-9 sm:w-40" />
+          <Skeleton className="h-9 w-full shrink-0 rounded-md sm:w-44" />
         </div>
       </div>
     </CardContent>
@@ -87,7 +86,11 @@ export const TripCardSkeleton = ({ className }: { className?: string }) => (
 );
 
 const TimelineRail = () => (
-  <div className="relative flex h-10 w-full items-center" role="presentation" aria-hidden="true">
+  <div
+    className="relative flex h-10 w-full min-w-0 flex-1 basis-0 items-center"
+    role="presentation"
+    aria-hidden="true"
+  >
     <div className="bg-primary/20 absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2" />
     <div className="relative flex w-full items-center justify-between">
       <div className="text-primary-foreground flex size-4 shrink-0 items-center justify-center rounded-full bg-gray-200 md:size-8">
@@ -124,9 +127,9 @@ export const TripCard = ({ trip, onSelect }: TripCardProps) => {
 
   return (
     <Card className="border-border/60 hover:primary/40 group overflow-hidden p-0 shadow-none transition-all hover:shadow-sm">
-      <CardContent className="space-y-4 p-5">
+      <CardContent className="space-y-4 p-4 sm:p-5">
         {/* ── Header ─────────────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="flex min-w-0 items-center gap-3">
             {operator?.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -140,7 +143,7 @@ export const TripCard = ({ trip, onSelect }: TripCardProps) => {
                 <BusIcon className="size-5" strokeWidth={2} />
               </div>
             )}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-foreground truncate text-base font-bold tracking-tight">
                 {operatorName}
               </p>
@@ -154,31 +157,31 @@ export const TripCard = ({ trip, onSelect }: TripCardProps) => {
               ) : null}
             </div>
           </div>
-          <p className="text-muted-foreground shrink-0 text-sm font-medium tracking-tight">
+          <p className="text-muted-foreground shrink-0 text-sm font-medium tracking-tight sm:text-right">
             {t("trips.duration")} {durationLabel}
           </p>
         </div>
 
         {/* ── Journey: times row, then stations row ──────────── */}
         <div className="space-y-2.5">
-          <div className="flex items-center gap-4 md:gap-6">
-            <p className="text-foreground shrink-0 text-3xl leading-none font-bold tracking-tight tabular-nums md:text-4xl">
+          <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
+            <p className="text-foreground shrink-0 text-2xl leading-none font-bold tracking-tight tabular-nums sm:text-3xl md:text-4xl">
               {departure.format("HH:mm")}
             </p>
             <TimelineRail />
-            <p className="text-foreground shrink-0 text-3xl leading-none font-bold tracking-tight tabular-nums md:text-4xl">
+            <p className="text-foreground shrink-0 text-2xl leading-none font-bold tracking-tight tabular-nums sm:text-3xl md:text-4xl">
               {arrival.format("HH:mm")}
             </p>
           </div>
-          <div className="flex items-baseline justify-between gap-6">
-            <p className="text-muted-foreground max-w-[48%] min-w-0 truncate text-sm">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4 md:gap-6">
+            <p className="text-muted-foreground min-w-0 truncate text-sm sm:max-w-[48%]">
               <span className="text-foreground font-semibold">
                 {originStation || fallbackOrigin}
               </span>
               <span className="mx-1.5 opacity-60">·</span>
               <span>{dateFmt(departure)}</span>
             </p>
-            <p className="text-muted-foreground max-w-[48%] min-w-0 truncate text-right text-sm">
+            <p className="text-muted-foreground min-w-0 truncate text-sm sm:max-w-[48%] sm:text-right">
               <span className="text-foreground font-semibold">{destStation || fallbackDest}</span>
               <span className="mx-1.5 opacity-60">·</span>
               <span>{dateFmt(arrival)}</span>
@@ -186,8 +189,8 @@ export const TripCard = ({ trip, onSelect }: TripCardProps) => {
           </div>
         </div>
 
-        {/* ── Footer: bus type + amenities (left) · price + CTA (right) — single row ── */}
-        <div className="flex items-center justify-between gap-3">
+        {/* ── Footer: amenities row, then price + CTA on narrow screens ── */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             {busClass ? (
               <Badge
@@ -200,24 +203,34 @@ export const TripCard = ({ trip, onSelect }: TripCardProps) => {
             <BusAmenityPills amenities={amenities} maxVisible={6} />
           </div>
 
-          <div className="flex shrink-0 items-center gap-8">
-            <div className="text-right leading-tight">
-              <p className="text-primary text-xl font-bold tracking-tight tabular-nums md:text-2xl">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2 sm:justify-end md:shrink-0 md:gap-4 lg:gap-8">
+            <div className="min-w-0 text-left leading-tight sm:text-right">
+              <p className="text-primary text-lg font-bold tracking-tight tabular-nums sm:text-xl md:text-2xl">
                 {formatCurrency(price, { code: "TZS", decimalDigits: 0 })}{" "}
-                <span className="text-muted-foreground text-xs">/ {t("trips.includesFees")}</span>
+                <span className="text-muted-foreground text-xs font-normal">
+                  / {t("trips.includesFees")}
+                </span>
               </p>
             </div>
 
             {onSelect ? (
-              <Button onClick={() => onSelect(trip)} size="sm" className="gap-1.5 rounded-md">
+              <Button
+                onClick={() => onSelect(trip)}
+                size="sm"
+                className="w-full justify-center gap-1.5 rounded-md text-xs sm:w-auto sm:shrink-0 sm:text-sm"
+              >
                 {t("trips.selectSeatWithCount", { count: trip.available_seats })}{" "}
-                <ArrowRight className="size-4" />
+                <ArrowRight className="size-4 shrink-0" />
               </Button>
             ) : (
-              <Button asChild size="sm" className="gap-1.5 rounded-md">
+              <Button
+                asChild
+                size="sm"
+                className="w-full justify-center gap-1.5 rounded-md text-xs sm:w-auto sm:shrink-0 sm:text-sm"
+              >
                 <Link href={`/trips/${trip.id}/seat`}>
                   {t("trips.selectSeatWithCount", { count: trip.available_seats })}{" "}
-                  <ArrowRight className="size-4" />
+                  <ArrowRight className="size-4 shrink-0" />
                 </Link>
               </Button>
             )}

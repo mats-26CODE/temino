@@ -35,9 +35,9 @@ interface FieldShellProps {
 }
 
 const FieldShell = ({ icon, label, className, children }: FieldShellProps) => (
-  <div className={cn("min-w-0 flex-1 px-4 py-2.5 md:py-3", className)}>
-    <label className="text-muted-foreground mb-0.5 flex items-center gap-1.5 text-[11px] font-medium tracking-wide uppercase">
-      <span className="inline-flex size-3.5 items-center justify-center">{icon}</span>
+  <div className={cn("min-w-0 flex-1 px-3 py-2 md:px-4 md:py-3", className)}>
+    <label className="text-muted-foreground mb-0.5 flex items-center gap-1 text-[10px] font-medium tracking-wide uppercase md:gap-1.5 md:text-[11px]">
+      <span className="inline-flex size-3 items-center justify-center md:size-3.5">{icon}</span>
       {label}
     </label>
     {children}
@@ -106,19 +106,19 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
   return (
     <Card
       className={cn(
-        "ring-border/50 w-full gap-0 overflow-hidden rounded-2xl px-3 py-1 shadow-xs ring-1",
+        "ring-border/50 w-full gap-0 overflow-hidden rounded-xl px-2 py-0.5 shadow-xs ring-1 md:rounded-2xl md:px-3 md:py-1",
         className,
       )}
     >
       <div className="flex flex-col items-stretch md:flex-row md:items-center">
         {/* From */}
         <FieldShell
-          icon={<MapPin className="size-3.5" />}
+          icon={<MapPin className="size-3 md:size-3.5" />}
           label={t("landing.search.from")}
           className="md:pl-6"
         >
           <Select value={origin} onValueChange={setOrigin}>
-            <SelectTrigger className="[&_svg:not([class*='text-'])]:text-muted-foreground/70 h-8 w-full border-0 bg-transparent! p-0 text-base font-bold tracking-tight shadow-none focus-visible:ring-0">
+            <SelectTrigger className="[&_svg:not([class*='text-'])]:text-muted-foreground/70 h-7 w-full border-0 bg-transparent! p-0 text-sm font-bold tracking-tight shadow-none focus-visible:ring-0 md:h-8 md:text-base">
               <SelectValue placeholder={t("landing.search.fromPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
@@ -145,9 +145,9 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
         </Button>
 
         {/* To */}
-        <FieldShell icon={<MapPin className="size-3.5" />} label={t("landing.search.to")}>
+        <FieldShell icon={<MapPin className="size-3 md:size-3.5" />} label={t("landing.search.to")}>
           <Select value={destination} onValueChange={setDestination}>
-            <SelectTrigger className="[&_svg:not([class*='text-'])]:text-muted-foreground/70 h-8 w-full border-0 bg-transparent! p-0 text-base font-bold tracking-tight shadow-none focus-visible:ring-0">
+            <SelectTrigger className="[&_svg:not([class*='text-'])]:text-muted-foreground/70 h-7 w-full border-0 bg-transparent! p-0 text-sm font-bold tracking-tight shadow-none focus-visible:ring-0 md:h-8 md:text-base">
               <SelectValue placeholder={t("landing.search.toPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
@@ -163,13 +163,16 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
         <Divider />
 
         {/* Date */}
-        <FieldShell icon={<CalendarIcon className="size-3.5" />} label={t("landing.search.date")}>
+        <FieldShell
+          icon={<CalendarIcon className="size-3 md:size-3.5" />}
+          label={t("landing.search.date")}
+        >
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
-                className="text-foreground hover:text-foreground h-8 w-full justify-start p-0 text-left text-base font-bold tracking-tight hover:bg-transparent focus-visible:ring-0"
+                className="text-foreground hover:text-foreground h-7 w-full justify-start p-0 text-left text-sm font-bold tracking-tight hover:bg-transparent focus-visible:ring-0 md:h-8 md:text-base"
               >
                 {date ? dayjs(date).format("ddd, MMM D") : t("landing.search.datePlaceholder")}
               </Button>
@@ -188,9 +191,12 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
         <Divider />
 
         {/* Passengers */}
-        <FieldShell icon={<Users className="size-3.5" />} label={t("landing.search.passengers")}>
+        <FieldShell
+          icon={<Users className="size-3 md:size-3.5" />}
+          label={t("landing.search.passengers")}
+        >
           <Select value={String(passengers)} onValueChange={(v) => setPassengers(Number(v))}>
-            <SelectTrigger className="[&_svg:not([class*='text-'])]:text-muted-foreground/70 h-8 w-full border-0 bg-transparent! p-0 text-base font-bold tracking-tight shadow-none focus-visible:ring-0">
+            <SelectTrigger className="[&_svg:not([class*='text-'])]:text-muted-foreground/70 h-7 w-full border-0 bg-transparent! p-0 text-sm font-bold tracking-tight shadow-none focus-visible:ring-0 md:h-8 md:text-base">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -204,15 +210,18 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
         </FieldShell>
 
         {/* Submit */}
-        <div className="px-3 pt-1 pb-3 md:p-1.5">
+        <div className="px-2 pt-0.5 pb-2 md:p-1.5">
           <Button
             type="button"
             onClick={handleSearch}
             disabled={!origin || !destination}
             size={isHero ? "lg" : "default"}
-            className="w-full gap-2 rounded-full px-5 text-base font-semibold tracking-tight inline-flex items-center justify-center md:w-auto md:px-8"
+            className={cn(
+              "inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 text-sm font-medium tracking-tight md:w-auto md:gap-2 md:px-8 md:text-base md:font-semibold",
+              isHero && "max-md:h-9 md:h-10",
+            )}
           >
-            <Search className="size-5" />
+            <Search className="size-4 shrink-0 md:size-5" />
             <span>{t("landing.search.button")}</span>
           </Button>
         </div>

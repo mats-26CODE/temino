@@ -55,7 +55,7 @@ const NavBar = () => {
       <div className="container mx-auto flex h-16 w-full items-center justify-between gap-4 px-4 md:max-w-6xl">
         {/* Left: brand */}
         <div className="flex shrink-0 items-center">
-          <Logo size="sm" />
+          <Logo size="lg" />
         </div>
 
         {/* Center: mode tabs (landing only on desktop) */}
