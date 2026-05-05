@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 /** Icon is sized to sit closer to the Cherry Bomb wordmark cap height (not tiny vs text). */
 const SIZE = {
   xs: { imgPx: 32, imgClass: "size-9", text: "text-lg leading-none" },
-  sm: { imgPx: 44, imgClass: "size-12", text: "text-xl leading-none" },
-  md: { imgPx: 56, imgClass: "size-14", text: "text-2xl leading-none" },
-  lg: { imgPx: 64, imgClass: "size-16", text: "text-3xl leading-none" },
+  sm: { imgPx: 44, imgClass: "size-12", text: "text-3xl leading-none" },
+  md: { imgPx: 56, imgClass: "size-14", text: "text-4xl leading-none" },
+  lg: { imgPx: 64, imgClass: "size-16", text: "text-5xl leading-none" },
 } as const;
 
 interface LogoProps {

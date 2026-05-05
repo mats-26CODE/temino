@@ -56,7 +56,7 @@ const NavBar = () => {
       <div className="container mx-auto flex h-16 w-full items-center justify-between gap-4 px-4 md:max-w-6xl">
         {/* Left: brand */}
         <div className="flex shrink-0 items-center">
-          <Logo size="lg" />
+          <Logo size="sm" />
         </div>
 
         {/* Center: mode tabs (landing only on desktop) */}
@@ -169,7 +169,7 @@ const NavBar = () => {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="flex h-full w-full! max-h-dvh flex-col gap-0 overflow-hidden p-0 sm:max-w-full!"
+              className="flex h-full max-h-dvh w-full! flex-col gap-0 overflow-hidden p-0 sm:max-w-full!"
             >
               <SheetHeader className="shrink-0 border-b px-6 pt-6 pb-4">
                 <SheetTitle>Menu</SheetTitle>
@@ -217,7 +217,7 @@ const NavBar = () => {
                         </Button>
 
                         <div>
-                          <p className="text-muted-foreground mb-2 text-xs font-semibold uppercase tracking-wide">
+                          <p className="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
                             {t("dashboard.accountTitle")}
                           </p>
                           <nav className="flex flex-col gap-0.5" aria-label={t("nav.dashboard")}>
