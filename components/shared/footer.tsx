@@ -14,7 +14,8 @@ export const Footer = () => {
       <div className="container mx-auto px-4 py-10 md:max-w-6xl">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-3">
-            <Logo size="sm" />
+            <Logo size="xs" className="md:hidden" />
+            <Logo size="sm" className="hidden md:inline-flex" />
             <p className="text-muted-foreground max-w-xs text-sm">
               {APP_NAME} — modern bus booking for Tanzania. Compare operators, pick your seat, pay
               with mobile money.

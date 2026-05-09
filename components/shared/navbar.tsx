@@ -52,11 +52,12 @@ const NavBar = () => {
   const handleLinkClick = () => setMobileMenuOpen(false);
 
   return (
-    <nav className="bg-background/85 supports-backdrop-filter:bg-background/65 sticky top-0 z-50 w-full backdrop-blur">
+    <nav className="bg-primary/10 supports-backdrop-filter:bg-primary/5 sticky top-0 z-50 w-full backdrop-blur">
       <div className="container mx-auto flex h-16 w-full items-center justify-between gap-4 px-4 md:max-w-6xl">
         {/* Left: brand */}
         <div className="flex shrink-0 items-center">
-          <Logo size="sm" />
+          <Logo size="xs" className="md:hidden" />
+          <Logo size="sm" className="hidden md:inline-flex" />
         </div>
 
         {/* Center: mode tabs (landing only on desktop) */}

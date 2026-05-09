@@ -106,11 +106,11 @@ export const RecommendationsSection = () => {
   return (
     <section
       id="recommendations"
-      className="container mx-auto px-4 pt-10 pb-16 md:max-w-6xl md:pt-16 md:pb-24"
+      className="container mx-auto px-4 pt-10 pb-16 md:max-w-6xl md:pt-6 md:pb-24"
     >
       {/* Header */}
-      <div className="mb-6 flex flex-col items-center gap-3 text-center">
-        <h2 className="text-foreground text-3xl font-bold tracking-tight text-balance md:text-5xl">
+      <div className="mb-4 flex flex-col items-center gap-2 text-center">
+        <h2 className="text-foreground text-3xl font-bold tracking-tight text-balance md:text-4xl">
           {activeCity
             ? t("landing.recommendations.title", { city: activeCity })
             : t("landing.recommendations.titleFallback")}

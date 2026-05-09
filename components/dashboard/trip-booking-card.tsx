@@ -40,6 +40,8 @@ export type MarketingTripCardProps = {
   duration: string;
   price: string;
   rating: number;
+  /** Dense styling for small hero illustrations (desktop compact hero). */
+  compact?: boolean;
   className?: string;
 };
 
@@ -52,49 +54,112 @@ export const MarketingTripCard = ({
   duration,
   price,
   rating,
+  compact,
   className,
 }: MarketingTripCardProps) => (
-  <div className={cn(shellClass(false, undefined), "max-w-[20rem]", className)}>
-    <div className="flex items-center gap-2.5">
-      <div className="bg-primary/15 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg">
-        <Bus className="size-4" />
+  <div
+    className={cn(
+      shellClass(false, undefined),
+      compact
+        ? "border-primary/30 max-w-48 rounded-lg! border-dotted! p-3! shadow-xs transition-none hover:scale-100 md:border-2"
+        : "border-primary/30 max-w-[20rem] border-dotted! md:border-2",
+      className,
+    )}
+  >
+    <div className={cn("flex items-center", compact ? "gap-1.5" : "gap-2.5")}>
+      <div
+        className={cn(
+          "bg-primary/15 text-primary flex shrink-0 items-center justify-center rounded-lg",
+          compact ? "size-7" : "size-9",
+        )}
+      >
+        <Bus className={compact ? "size-3" : "size-4"} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-foreground truncate text-[13px] leading-tight font-semibold">{title}</p>
-        <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-[11px]">
-          <span className="inline-flex items-center gap-1">
-            <Star className="size-3 fill-amber-400 text-amber-400" />
+        <p
+          className={cn(
+            "text-foreground truncate leading-tight font-semibold",
+            compact ? "text-[11px]" : "text-[13px]",
+          )}
+        >
+          {title}
+        </p>
+        <div
+          className={cn(
+            "text-muted-foreground mt-0.5 flex items-center gap-1.5",
+            compact ? "text-[9px]" : "gap-2 text-[11px]",
+          )}
+        >
+          <span className="inline-flex items-center gap-0.5">
+            <Star
+              className={cn("fill-amber-400 text-amber-400", compact ? "size-2.5" : "size-3")}
+            />
             {rating.toFixed(1)}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Wifi className="size-3" />
+            <Wifi className={compact ? "size-2.5" : "size-3"} />
           </span>
           <span className="inline-flex items-center gap-1">
-            <Zap className="size-3" />
+            <Zap className={compact ? "size-2.5" : "size-3"} />
           </span>
         </div>
       </div>
-      <div className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold">
+      <div
+        className={cn(
+          "bg-primary/10 text-primary inline-flex shrink-0 items-center gap-0.5 rounded-full font-semibold",
+          compact ? "px-1.5 py-0.5 text-[9px]" : "gap-1 px-2 py-1 text-[11px]",
+        )}
+      >
         {price}
       </div>
     </div>
 
-    <div className="mt-3 flex items-center gap-2">
+    <div className={cn("flex items-center gap-1.5", compact ? "mt-2" : "mt-3 gap-2")}>
       <div className="text-left">
-        <p className="text-foreground text-[15px] leading-none font-bold">{depart}</p>
-        <p className="text-muted-foreground mt-0.5 truncate text-[10px]">{origin}</p>
+        <p
+          className={cn(
+            "text-foreground leading-none font-bold",
+            compact ? "text-xs" : "text-[15px]",
+          )}
+        >
+          {depart}
+        </p>
+        <p
+          className={cn(
+            "text-muted-foreground mt-0.5 truncate",
+            compact ? "max-w-16 text-[8px]" : "text-[10px]",
+          )}
+        >
+          {origin}
+        </p>
       </div>
-      <div className="flex flex-1 flex-col items-center gap-0.5">
-        <span className="text-muted-foreground text-[10px]">{duration}</span>
+      <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
+        <span className={cn("text-muted-foreground", compact ? "text-[8px]" : "text-[10px]")}>
+          {duration}
+        </span>
         <div className="bg-border relative h-px w-full">
           <div className="bg-primary absolute top-1/2 left-0 size-1 -translate-y-1/2 rounded-full" />
           <div className="bg-primary absolute top-1/2 right-0 size-1 -translate-y-1/2 rounded-full" />
         </div>
-        <ArrowRight className="text-muted-foreground/70 size-3" />
+        <ArrowRight className={cn("text-muted-foreground/70", compact ? "size-2.5" : "size-3")} />
       </div>
       <div className="text-right">
-        <p className="text-foreground text-[15px] leading-none font-bold">{arrive}</p>
-        <p className="text-muted-foreground mt-0.5 truncate text-[10px]">{destination}</p>
+        <p
+          className={cn(
+            "text-foreground leading-none font-bold",
+            compact ? "text-xs" : "text-[15px]",
+          )}
+        >
+          {arrive}
+        </p>
+        <p
+          className={cn(
+            "text-muted-foreground mt-0.5 truncate",
+            compact ? "max-w-16 text-[8px]" : "text-[10px]",
+          )}
+        >
+          {destination}
+        </p>
       </div>
     </div>
   </div>
