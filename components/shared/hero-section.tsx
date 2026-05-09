@@ -10,7 +10,7 @@ export const HeroSection = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="bg-primary/5 relative overflow-hidden">
+    <section className="from-primary/5 via-primary/10 to-primary/0 relative overflow-hidden bg-linear-to-b">
       {/* Layered tinted background */}
       <div
         className="from-primary/15 via-primary/5 to-background absolute inset-0 -z-10 bg-linear-to-br"
