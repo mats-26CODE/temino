@@ -62,6 +62,10 @@ export const translations = {
     "landing.recommendations.unsupported":
       "Geolocation isn't available on this device. Showing trips from {city}.",
     "landing.recommendations.useMyLocation": "Use my location",
+    "landing.recommendations.region": "Region",
+    "landing.recommendations.regionAll": "All regions",
+    "landing.recommendations.chooseOriginHint": "Choose an origin once cities load, or use your location.",
+    "landing.recommendations.loadingCities": "Loading cities…",
     "landing.recommendations.empty.title": "No trips here yet",
     "landing.recommendations.empty.subtitle":
       "We don't have departures from {city} right now. Try a different origin or jump back to search.",
@@ -336,6 +340,11 @@ export const translations = {
     "landing.recommendations.unsupported":
       "Kifaa hiki hakitumii eneo. Tunaonyesha safari kutoka {city}.",
     "landing.recommendations.useMyLocation": "Tumia eneo langu",
+    "landing.recommendations.region": "Mkoa",
+    "landing.recommendations.regionAll": "Mikoa yote",
+    "landing.recommendations.chooseOriginHint":
+      "Chagua mji wa kuanzia miji yikipakia, au tumia eneo lako.",
+    "landing.recommendations.loadingCities": "Inapakia miji…",
     "landing.recommendations.empty.title": "Hakuna safari kwa sasa",
     "landing.recommendations.empty.subtitle":
       "Hakuna safari kutoka {city} sasa hivi. Jaribu mji mwingine au rudi kwenye utafutaji.",

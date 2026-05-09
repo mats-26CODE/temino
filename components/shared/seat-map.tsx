@@ -6,7 +6,7 @@ import { GiSteeringWheel } from "react-icons/gi";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/use-translation";
-import { getToiletRow1Based, parseRowFromNumber } from "@/lib/mocks/trip-seats";
+import { getToiletRow1Based, parseRowFromNumber } from "@/lib/trip-seats";
 
 /** Two seat buttons (min-w-11) + gap-1.5, matching each pair + aisle layout. */
 const PAIR_W = "w-[5.875rem]";

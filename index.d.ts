@@ -31,12 +31,22 @@ interface Region {
   id: string;
   name: string;
   country?: Country | string;
+  /** Present on list payloads from `RegionSerializer`. */
+  country_name?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface City {
   id: string;
   name: string;
   region?: Region | string;
+  /** Present on list payloads from `CitySerializer`. */
+  region_name?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface Station {
@@ -46,6 +56,8 @@ interface Station {
   latitude?: number | null;
   longitude?: number | null;
   city?: City | string;
+  /** Present on list payloads from `StationSerializer`. */
+  city_name?: string;
 }
 
 // ── Operators ────────────────────────────────────────────────────────────────
@@ -148,6 +160,13 @@ interface Trip {
   trip_code: string;
   /** From API when `route` is serialized as an id only (see `resolveTripStopLabels`). */
   route_code?: string;
+  /** Flattened from `route.*` via `TripSerializer` (preferred for labels when `route` is a PK). */
+  origin_station_id?: string;
+  destination_station_id?: string;
+  origin_station_name?: string;
+  destination_station_name?: string;
+  origin_city_name?: string;
+  destination_city_name?: string;
   route: Route;
   operator: Operator;
   bus: Bus;
@@ -171,12 +190,7 @@ type BookingStatus = "pending" | "confirmed" | "paid" | "cancelled" | "expired";
 type PassengerGender = "male" | "female";
 type PassengerTravellerType = "adult" | "child";
 
-type PassengerDocumentType =
-  | "nida"
-  | "drivers_licence"
-  | "voters_id"
-  | "passport"
-  | "none";
+type PassengerDocumentType = "nida" | "drivers_licence" | "voters_id" | "passport" | "none";
 
 interface PassengerInfo {
   /** Stored as concatenated legal name — used when creating bookings API-side. */
@@ -230,7 +244,7 @@ interface SearchTripsParams {
   passengers?: number;
 }
 
-// ── User / Auth (frontend-shaped, mocked client-side until backend exposes) ──
+// ── User / Auth (frontend-shaped; mocked client-side until backend exposes) ───
 type TravellerProfile = import("./lib/passenger-forms").PassengerDetailsFormValues;
 
 interface AppUser {

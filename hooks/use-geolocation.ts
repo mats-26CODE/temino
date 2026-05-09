@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { TZ_CITIES_WITH_COORDS } from "@/constants/values";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { findNearestCity } from "@/helpers/helpers";
+import { locationsApi } from "@/lib/api/locations-api";
 
 export type GeolocationStatus =
   | "idle"
@@ -28,19 +28,46 @@ const INITIAL: GeolocationState = {
   error: null,
 };
 
+const catalogFromStations = (
+  stations: Station[],
+): { name: string; lat: number; lng: number }[] => {
+  const byCity = new Map<string, { name: string; lat: number; lng: number }>();
+  for (const s of stations) {
+    const city =
+      (typeof s.city === "object" && s.city?.name ? s.city.name : "").trim() ||
+      (s.city_name ?? "").trim();
+    if (!city || s.latitude == null || s.longitude == null) continue;
+    const lat = Number(s.latitude);
+    const lng = Number(s.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+    if (!byCity.has(city)) byCity.set(city, { name: city, lat, lng });
+  }
+  return [...byCity.values()];
+};
+
 /**
- * Detect the user's nearest TZ city via `navigator.geolocation`.
- *
- * - Prompts on mount when `auto` is true (default). Pass `auto: false` to
- *   trigger manually with `request()`.
- * - We only resolve to one of `TZ_CITIES_WITH_COORDS`; this avoids needing an
- *   external reverse-geocoding API and keeps the request 100% client-side.
- * - If the user denies, isn't in TZ, or the API isn't supported, the consumer
- *   can fall back to a sensible default city (e.g. Dar es Salaam).
+ * Resolve the user's nearest **city** using station coordinates from
+ * `GET /api/locations/stations/` (one representative station per city).
  */
 export const useGeolocation = (options?: { auto?: boolean }) => {
   const auto = options?.auto ?? true;
   const [state, setState] = useState<GeolocationState>(INITIAL);
+  const catalogRef = useRef<{ name: string; lat: number; lng: number }[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    locationsApi
+      .fetchStations()
+      .then((rows) => {
+        if (!cancelled) catalogRef.current = catalogFromStations(rows);
+      })
+      .catch(() => {
+        if (!cancelled) catalogRef.current = [];
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const request = useCallback(() => {
     if (typeof window === "undefined" || !("geolocation" in navigator)) {
@@ -53,7 +80,8 @@ export const useGeolocation = (options?: { auto?: boolean }) => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        const nearest = findNearestCity(coords, TZ_CITIES_WITH_COORDS);
+        const pool = catalogRef.current;
+        const nearest = pool.length > 0 ? findNearestCity(coords, pool) : null;
         setState({
           status: "ready",
           coords,

@@ -2,7 +2,6 @@ import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { MOCK_ROUTES } from "@/lib/mocks/trips";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -276,65 +275,60 @@ export const buildRouteCode = (origin: string, destination: string): string => {
 };
 
 /**
- * Labels under departure / arrival times on cards. Uses nested stations from the
- * API when present; otherwise maps `route_code` or origin/destination cities to
- * `MOCK_ROUTES` so the live API (which often omits `origin_station`) still shows
- * terminal names in dev.
+ * Labels under departure / arrival times on cards.
  *
- * Django `TripSerializer` usually sends `route` as a PK (string) and puts
- * `route_code` on the trip root — we must read both shapes.
+ * Prefer flattened trip fields from `TripSerializer` (`origin_station_name`, …),
+ * then nested route payloads when the API expands `route`.
  */
 export const resolveTripStopLabels = (
   trip: Trip,
 ): { origin: string; destination: string } => {
-  // DRF often serializes `route` as a PK string; mocks use a full `Route` object.
+  const fromTripStationOrigin = trip.origin_station_name?.trim();
+  const fromTripStationDest = trip.destination_station_name?.trim();
+  if (fromTripStationOrigin && fromTripStationDest) {
+    return { origin: fromTripStationOrigin, destination: fromTripStationDest };
+  }
+
+  const fromTripCityOrigin = trip.origin_city_name?.trim();
+  const fromTripCityDest = trip.destination_city_name?.trim();
+  if (fromTripCityOrigin && fromTripCityDest) {
+    return { origin: fromTripCityOrigin, destination: fromTripCityDest };
+  }
+
   const rawRoute = trip.route as unknown as Route | string;
   const nested =
     rawRoute && typeof rawRoute === "object" && !Array.isArray(rawRoute)
       ? (rawRoute as Route)
       : null;
 
-  const tripRouteCode = trip.route_code?.trim() ?? "";
-
-  const fromApiOrigin = nested?.origin_station?.name?.trim();
-  const fromApiDest = nested?.destination_station?.name?.trim();
-  if (fromApiOrigin && fromApiDest) {
-    return { origin: fromApiOrigin, destination: fromApiDest };
+  const fromNestedOrigin =
+    nested?.origin_station?.name?.trim() ??
+    (nested as Route & { origin_station_name?: string })?.origin_station_name?.trim();
+  const fromNestedDest =
+    nested?.destination_station?.name?.trim() ??
+    (nested as Route & { destination_station_name?: string })?.destination_station_name?.trim();
+  if (fromNestedOrigin && fromNestedDest) {
+    return { origin: fromNestedOrigin, destination: fromNestedDest };
   }
 
-  const codeRaw =
-    tripRouteCode ||
-    (nested?.route_code ?? nested?.code ?? "").toString().trim();
-  if (codeRaw) {
-    const upper = codeRaw.toUpperCase();
-    const mock = MOCK_ROUTES.find(
-      (m) => m.route_code.toUpperCase() === upper || (m.code && m.code.toUpperCase() === upper),
-    );
-    if (mock) {
-      return {
-        origin: fromApiOrigin ?? mock.origin_station.name,
-        destination: fromApiDest ?? mock.destination_station.name,
-      };
-    }
+  const nestedCityOrigin =
+    (nested as Route & { origin_city_name?: string })?.origin_city_name?.trim();
+  const nestedCityDest =
+    (nested as Route & { destination_city_name?: string })?.destination_city_name?.trim();
+  if (nestedCityOrigin && nestedCityDest) {
+    return { origin: nestedCityOrigin, destination: nestedCityDest };
   }
 
   const originCity =
     nested && typeof nested.origin === "string" ? nested.origin.trim() : "";
   const destCity =
     nested && typeof nested.destination === "string" ? nested.destination.trim() : "";
-  if (originCity && destCity) {
-    const mock = MOCK_ROUTES.find((m) => m.origin === originCity && m.destination === destCity);
-    if (mock) {
-      return {
-        origin: fromApiOrigin ?? mock.origin_station.name,
-        destination: fromApiDest ?? mock.destination_station.name,
-      };
-    }
-  }
+
+  const routeHint = trip.route_code?.trim() ?? "";
 
   return {
-    origin: fromApiOrigin || originCity || "",
-    destination: fromApiDest || destCity || "",
+    origin: fromTripStationOrigin || fromTripCityOrigin || originCity || routeHint,
+    destination: fromTripStationDest || fromTripCityDest || destCity || "",
   };
 };
 
@@ -372,4 +366,18 @@ export const findNearestCity = <T extends { name: string; lat: number; lng: numb
     if (!best || distanceKm < best.distanceKm) best = { city, distanceKm };
   }
   return best;
+};
+
+/**
+ * Match a fuzzy/geo city label to an API catalog row (case-insensitive name).
+ */
+export const normalizeCityNameAgainstCatalog = (
+  approximate: string | null | undefined,
+  catalog: readonly { name: string }[],
+): string | null => {
+  if (!approximate) return null;
+  if (catalog.length === 0) return approximate;
+  const target = approximate.trim().toLowerCase();
+  const hit = catalog.find((c) => c.name.trim().toLowerCase() === target);
+  return hit?.name ?? approximate;
 };

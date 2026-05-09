@@ -2,16 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { buildExampleDashboardBookings } from "@/lib/mocks/example-dashboard-bookings";
-
-const shouldUseExampleDashboardBookings = () =>
-  process.env.NODE_ENV === "development" ||
-  process.env.NEXT_PUBLIC_SHOW_EXAMPLE_DASHBOARD_BOOKINGS === "true";
-
-const withExampleBookingsWhenEmpty = (list: Booking[]): Booking[] => {
-  if (!shouldUseExampleDashboardBookings() || list.length > 0) return list;
-  return buildExampleDashboardBookings();
-};
+import { fetchAllPages } from "@/lib/fetch-all-pages";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export const BOOKINGS_QUERY_KEY = ["bookings"] as const;
 
@@ -41,27 +33,14 @@ export const useCreateBooking = () => {
 };
 
 /**
- * GET /api/bookings/ — current user's bookings (used by dashboard trip history).
+ * GET /api/bookings/mine/ — authenticated user's bookings.
  */
-export const useBookings = () =>
-  useQuery<Booking[]>({
-    queryKey: [...BOOKINGS_QUERY_KEY, "list"],
-    queryFn: async () => {
-      const { data } = await api.get<Booking[] | ApiPaginated<Booking>>("/api/bookings/");
-      const list = Array.isArray(data) ? data : data.results;
-      return withExampleBookingsWhenEmpty(list);
-    },
-  });
+export const useBookings = () => {
+  const token = useAuthStore((s) => s.token);
 
-/**
- * GET /api/bookings/{id}/ — used on the confirmation/ticket page.
- */
-export const useBooking = (bookingId: string | null | undefined) =>
-  useQuery<Booking>({
-    queryKey: [...BOOKINGS_QUERY_KEY, "detail", bookingId],
-    enabled: Boolean(bookingId),
-    queryFn: async () => {
-      const { data } = await api.get<Booking>(`/api/bookings/${bookingId}/`);
-      return data;
-    },
+  return useQuery<Booking[]>({
+    queryKey: [...BOOKINGS_QUERY_KEY, "mine"],
+    enabled: Boolean(token),
+    queryFn: () => fetchAllPages<Booking>("/api/bookings/mine/"),
   });
+};

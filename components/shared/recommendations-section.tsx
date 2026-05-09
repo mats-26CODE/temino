@@ -16,9 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGeolocation } from "@/hooks/use-geolocation";
+import { useCities } from "@/hooks/use-locations";
 import { useRecommendedTrips } from "@/hooks/use-trips";
+import { normalizeCityNameAgainstCatalog } from "@/helpers/helpers";
 import { useTranslation } from "@/hooks/use-translation";
-import { TZ_CITIES } from "@/constants/values";
 import { cn } from "@/lib/utils";
 import {
   RecommendationCard,
@@ -26,7 +27,6 @@ import {
   type RecommendationTag,
 } from "./recommendation-card";
 
-const FALLBACK_CITY = "Dar es Salaam";
 const VISIBLE_DATE_PILLS = 7; // Today + next 6 days
 
 const tripPrice = (t: Trip): number => {
@@ -69,11 +69,32 @@ export const RecommendationsSection = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
 
-  const detectedCity = geo.city;
-  const activeCity = overrideCity ?? detectedCity ?? FALLBACK_CITY;
-  const isAutoDetected = !overrideCity && Boolean(detectedCity);
+  const { data: backendCities = [], isError: citiesError } = useCities();
 
-  const { data: trips, isLoading, isError } = useRecommendedTrips({ origin: activeCity });
+  const hasBackendLocations = backendCities.length > 0 && !citiesError;
+
+  const selectableCityNames = useMemo(() => {
+    if (!hasBackendLocations) return [];
+    return [...backendCities.map((c) => c.name)].sort((a, b) => a.localeCompare(b));
+  }, [backendCities, hasBackendLocations]);
+
+  const detectedCityNormalized = useMemo(
+    () =>
+      hasBackendLocations ? normalizeCityNameAgainstCatalog(geo.city, backendCities) : geo.city,
+    [geo.city, backendCities, hasBackendLocations],
+  );
+
+  const activeCity = overrideCity ?? detectedCityNormalized ?? selectableCityNames[0] ?? "";
+
+  const isAutoDetected = !overrideCity && Boolean(detectedCityNormalized);
+
+  const {
+    data: trips,
+    isLoading,
+    isError,
+  } = useRecommendedTrips({
+    origin: activeCity.trim() || undefined,
+  });
 
   // Date pills: today + next 6 days.
   const today = useMemo(() => dayjs().startOf("day"), []);
@@ -88,16 +109,25 @@ export const RecommendationsSection = () => {
     if (!trips || trips.length === 0) return [];
     const target = dayjs(visibleDate).startOf("day");
     const onDate = trips.filter((trip) => dayjs(trip.departure_time).startOf("day").isSame(target));
-    // If we don't have trips for the selected day in our (mock) data, fall
-    // through to the full set so the UI is never empty.
+    // If there are no trips on the selected day, still surface nearby departures.
     return (onDate.length > 0 ? onDate : trips).slice(0, 6);
   }, [trips, visibleDate]);
 
   const tagsById = useMemo(() => pickTags(filteredTrips), [filteredTrips]);
 
-  // Once geo resolves, clear any prior manual override so we honour the live signal.
+  // Keep the chosen origin inside whatever city list is currently available.
   useEffect(() => {
-    if (geo.status === "ready" && geo.city) setOverrideCity(null);
+    if (selectableCityNames.length === 0) return;
+    if (!selectableCityNames.includes(activeCity)) {
+      setOverrideCity(selectableCityNames[0]);
+    }
+  }, [selectableCityNames, activeCity]);
+
+  // Once geo resolves, prefer the detected city over a manual pick.
+  useEffect(() => {
+    if (geo.status === "ready" && geo.city) {
+      setOverrideCity(null);
+    }
   }, [geo.status, geo.city]);
 
   const isPillSelected = (d: dayjs.Dayjs) =>
@@ -111,7 +141,7 @@ export const RecommendationsSection = () => {
       {/* Header */}
       <div className="mb-4 flex flex-col items-center gap-2 text-center">
         <h2 className="text-foreground text-3xl font-bold tracking-tight text-balance md:text-4xl">
-          {activeCity
+          {activeCity.trim()
             ? t("landing.recommendations.title", { city: activeCity })
             : t("landing.recommendations.titleFallback")}
         </h2>
@@ -120,29 +150,40 @@ export const RecommendationsSection = () => {
         <div className="text-muted-foreground flex flex-wrap items-center justify-center gap-2 text-xs md:text-sm">
           {geo.status === "requesting"
             ? t("landing.recommendations.detecting")
-            : isAutoDetected
-              ? t("landing.recommendations.fromYourLocation")
-              : t("landing.recommendations.fromCity", { city: activeCity })}
+            : !activeCity.trim()
+              ? t("landing.recommendations.chooseOriginHint")
+              : isAutoDetected
+                ? t("landing.recommendations.fromYourLocation")
+                : t("landing.recommendations.fromCity", { city: activeCity })}
 
-          <Select value={activeCity} onValueChange={(v) => setOverrideCity(v)}>
-            <SelectTrigger
-              size="sm"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "max-w-[min(18rem,85vw)] gap-1.5 rounded-lg border-gray-200 px-2.5 py-4.5 text-xs font-semibold tracking-tight shadow-xs md:px-3 md:text-sm",
-              )}
+          {selectableCityNames.length > 0 ? (
+            <Select
+              value={activeCity || selectableCityNames[0]}
+              onValueChange={(v) => setOverrideCity(v)}
             >
-              <MapPin className="text-primary size-3.5 shrink-0" aria-hidden />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TZ_CITIES.map((city) => (
-                <SelectItem key={city} value={city}>
-                  {city}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectTrigger
+                size="sm"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "max-w-[min(18rem,85vw)] gap-1.5 rounded-lg border-gray-200 px-2.5 py-4.5 text-xs font-semibold tracking-tight shadow-xs md:px-3 md:text-sm",
+                )}
+              >
+                <MapPin className="text-primary size-3.5 shrink-0" aria-hidden />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {selectableCityNames.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <span className="text-muted-foreground px-1">
+              {t("landing.recommendations.loadingCities")}
+            </span>
+          )}
 
           {(geo.status === "denied" ||
             geo.status === "unsupported" ||

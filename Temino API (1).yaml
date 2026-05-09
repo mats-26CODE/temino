@@ -1,0 +1,2502 @@
+openapi: 3.0.3
+info:
+  title: Temino API
+  version: 1.0.0
+  description: Backend API for Temino bus ticket booking platform.
+paths:
+  /api/accounts/login/:
+    post:
+      operationId: accounts_login_create
+      description: Log in an existing user and return an auth token.
+      tags:
+      - accounts
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/accounts/profile/:
+    get:
+      operationId: accounts_profile_retrieve
+      description: Return the authenticated user's profile.
+      tags:
+      - accounts
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/accounts/register/:
+    post:
+      operationId: accounts_register_create
+      description: Register a new user.
+      tags:
+      - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /api/bookings/:
+    get:
+      operationId: bookings_list
+      description: |-
+        Returns all bookings.
+
+        Useful for admin/testing for now.
+        Later this should be restricted to admin/operator roles.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - bookings
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookingList'
+          description: ''
+  /api/bookings/{booking_id}/ticket/:
+    get:
+      operationId: bookings_ticket_retrieve
+      description: |-
+        Returns final ticket/confirmation details for a booking.
+
+        Frontend use case:
+        GET /api/bookings/{booking_id}/ticket/
+
+        This endpoint only returns ticket details after payment success.
+      parameters:
+      - in: path
+        name: booking_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - bookings
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+          description: ''
+  /api/bookings/create/:
+    post:
+      operationId: bookings_create_create
+      description: Creates a new booking and reserves the selected seat temporarily.
+      tags:
+      - bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/bookings/mine/:
+    get:
+      operationId: bookings_mine_list
+      description: Returns bookings belonging to the authenticated user.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - bookings
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookingList'
+          description: ''
+  /api/bookings/ticket/verify/:
+    get:
+      operationId: bookings_ticket_verify_retrieve
+      description: |-
+        Verify a ticket using booking reference from QR code.
+
+        Example:
+        GET /api/bookings/ticket/verify/?code=BK-12345678
+
+        Frontend/operator use case:
+        - scan QR code
+        - extract booking reference or open verification URL
+        - verify ticket status
+      tags:
+      - bookings
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketVerification'
+          description: ''
+  /api/locations/cities/:
+    get:
+      operationId: locations_cities_list
+      description: Returns a list of active cities.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - locations
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCityList'
+          description: ''
+  /api/locations/countries/:
+    get:
+      operationId: locations_countries_list
+      description: Returns a list of active countries.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - locations
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCountryList'
+          description: ''
+  /api/locations/regions/:
+    get:
+      operationId: locations_regions_list
+      description: Returns a list of active regions.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - locations
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRegionList'
+          description: ''
+  /api/locations/stations/:
+    get:
+      operationId: locations_stations_list
+      description: Returns a list of active stations.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - locations
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStationList'
+          description: ''
+  /api/operators/:
+    get:
+      operationId: operators_list
+      description: |-
+        Public list of active operators.
+
+        Supported query parameters:
+        - name
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - operators
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOperatorList'
+          description: ''
+  /api/operators/{id}/:
+    get:
+      operationId: operators_retrieve
+      description: |-
+        Retrieve or update a specific operator.
+
+        Object-level access:
+        - admin/superadmin can access any operator
+        - operator_manager can access only their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - operators
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+    put:
+      operationId: operators_update
+      description: |-
+        Retrieve or update a specific operator.
+
+        Object-level access:
+        - admin/superadmin can access any operator
+        - operator_manager can access only their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Operator'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+    patch:
+      operationId: operators_partial_update
+      description: |-
+        Retrieve or update a specific operator.
+
+        Object-level access:
+        - admin/superadmin can access any operator
+        - operator_manager can access only their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+  /api/operators/buses/:
+    get:
+      operationId: operators_buses_list
+      description: |-
+        Public list of active buses.
+
+        Supported query parameters:
+        - operator
+        - bus_type
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - operators
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBusList'
+          description: ''
+  /api/operators/buses/{id}/:
+    get:
+      operationId: operators_buses_retrieve
+      description: |-
+        Retrieve or update a specific bus.
+
+        Object-level access:
+        - admin/superadmin can access any bus
+        - operator_manager can access only buses for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - operators
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bus'
+          description: ''
+    put:
+      operationId: operators_buses_update
+      description: |-
+        Retrieve or update a specific bus.
+
+        Object-level access:
+        - admin/superadmin can access any bus
+        - operator_manager can access only buses for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Bus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Bus'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bus'
+          description: ''
+    patch:
+      operationId: operators_buses_partial_update
+      description: |-
+        Retrieve or update a specific bus.
+
+        Object-level access:
+        - admin/superadmin can access any bus
+        - operator_manager can access only buses for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBus'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bus'
+          description: ''
+  /api/operators/buses/create/:
+    post:
+      operationId: operators_buses_create_create
+      description: |-
+        Create a new bus.
+
+        Allowed roles:
+        - operator_manager
+        - admin
+        - superadmin
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Bus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Bus'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bus'
+          description: ''
+  /api/operators/create/:
+    post:
+      operationId: operators_create_create
+      description: |-
+        Create a new operator.
+
+        Allowed roles:
+        - operator_manager
+        - admin
+        - superadmin
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Operator'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+  /api/payments/:
+    get:
+      operationId: payments_list
+      description: |-
+        Return all payment records.
+
+        Useful for testing/admin during MVP stage.
+        Later this should be restricted.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - payments
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPaymentList'
+          description: ''
+  /api/payments/complete/:
+    post:
+      operationId: payments_complete_create
+      description: |-
+        Complete a local payment.
+
+        Mainly used for internal/manual testing.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/create/:
+    post:
+      operationId: payments_create_create
+      description: Create a local payment record for an existing booking.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/fail/:
+    post:
+      operationId: payments_fail_create
+      description: Mark payment as failed.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/mock/fail/:
+    post:
+      operationId: payments_mock_fail_create
+      description: Simulate failed mock payment.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/mock/pending/:
+    post:
+      operationId: payments_mock_pending_create
+      description: Simulate pending mock payment.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/mock/session/:
+    post:
+      operationId: payments_mock_session_create
+      description: Create mock payment session for development.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/mock/success/:
+    post:
+      operationId: payments_mock_success_create
+      description: Simulate successful mock payment.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/selcom/checkout/:
+    post:
+      operationId: payments_selcom_checkout_create
+      description: Initiate Selcom checkout for a booking.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/selcom/verify/:
+    post:
+      operationId: payments_selcom_verify_create
+      description: Verify Selcom payment status from server side.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/routes/:
+    get:
+      operationId: routes_list
+      description: |-
+        Returns a list of active routes.
+
+        Supported query parameters:
+        - origin_station
+        - destination_station
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - routes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRouteList'
+          description: ''
+  /api/trips/:
+    get:
+      operationId: trips_list
+      description: Returns a list of active trips.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - trips
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTripList'
+          description: ''
+  /api/trips/{id}/:
+    get:
+      operationId: trips_retrieve
+      description: |-
+        Retrieve or update a specific trip.
+
+        Object-level access:
+        - admin/superadmin can access any trip
+        - operator_manager can access only trips for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - trips
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+    put:
+      operationId: trips_update
+      description: |-
+        Retrieve or update a specific trip.
+
+        Object-level access:
+        - admin/superadmin can access any trip
+        - operator_manager can access only trips for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - trips
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Trip'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+    patch:
+      operationId: trips_partial_update
+      description: |-
+        Retrieve or update a specific trip.
+
+        Object-level access:
+        - admin/superadmin can access any trip
+        - operator_manager can access only trips for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - trips
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTrip'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTrip'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTrip'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+  /api/trips/{trip_id}/seats/:
+    get:
+      operationId: trips_seats_list
+      description: Returns seats for a specific trip.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: path
+        name: trip_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - trips
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTripSeatList'
+          description: ''
+  /api/trips/create/:
+    post:
+      operationId: trips_create_create
+      description: |-
+        Create a new trip.
+
+        Seats are auto-generated because of Step 9 logic.
+
+        Allowed roles:
+        - operator_manager
+        - admin
+        - superadmin
+      tags:
+      - trips
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Trip'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+  /api/trips/search/:
+    get:
+      operationId: trips_search_list
+      description: |-
+        Search endpoint for trips.
+
+        Supported query parameters:
+        - origin_station
+        - destination_station
+        - departure_date
+        - operator
+        - status
+        - min_price
+        - max_price
+        - ordering
+
+        Example:
+        /api/trips/search/?origin_station=<uuid>&destination_station=<uuid>&departure_date=2026-04-08
+        /api/trips/search/?operator=<uuid>&min_price=30000&max_price=50000
+        /api/trips/search/?ordering=base_price
+        /api/trips/search/?ordering=-departure_time
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - trips
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTripList'
+          description: ''
+components:
+  schemas:
+    Booking:
+      type: object
+      description: General booking serializer used for booking list/create responses.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        trip_code:
+          type: string
+          readOnly: true
+        seat_number:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        booking_reference:
+          type: string
+          maxLength: 50
+        passenger_name:
+          type: string
+          maxLength: 255
+        passenger_phone:
+          type: string
+          maxLength: 20
+        passenger_email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        booking_status:
+          $ref: '#/components/schemas/BookingStatusEnum'
+        booking_channel:
+          $ref: '#/components/schemas/BookingChannelEnum'
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        fare_paid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        booking_lead_time_hours:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        payment_success:
+          type: boolean
+        cancellation_flag:
+          type: boolean
+        booked_at:
+          type: string
+          format: date-time
+          readOnly: true
+        confirmed_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        user:
+          type: integer
+          nullable: true
+        trip:
+          type: string
+          format: uuid
+        seat:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - amount
+      - booked_at
+      - booking_reference
+      - created_at
+      - id
+      - passenger_name
+      - passenger_phone
+      - seat_number
+      - trip
+      - trip_code
+      - updated_at
+    BookingChannelEnum:
+      enum:
+      - web
+      - mobile
+      - agent
+      - admin
+      type: string
+      description: |-
+        * `web` - Web
+        * `mobile` - Mobile
+        * `agent` - Agent
+        * `admin` - Admin
+    BookingStatusEnum:
+      enum:
+      - pending
+      - confirmed
+      - cancelled
+      - expired
+      - completed
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `confirmed` - Confirmed
+        * `cancelled` - Cancelled
+        * `expired` - Expired
+        * `completed` - Completed
+    Bus:
+      type: object
+      description: Serializer for buses.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        operator_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        plate_number:
+          type: string
+          maxLength: 50
+        bus_number:
+          type: string
+          nullable: true
+          maxLength: 50
+        bus_type:
+          $ref: '#/components/schemas/BusTypeEnum'
+        capacity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        manufacture_year:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        operator:
+          type: string
+          format: uuid
+      required:
+      - capacity
+      - created_at
+      - id
+      - operator
+      - operator_name
+      - plate_number
+      - updated_at
+    BusTypeEnum:
+      enum:
+      - standard
+      - executive
+      - vip
+      - mini_bus
+      - coaster
+      type: string
+      description: |-
+        * `standard` - Standard
+        * `executive` - Executive
+        * `vip` - VIP
+        * `mini_bus` - Mini Bus
+        * `coaster` - Coaster
+    City:
+      type: object
+      description: Serializer for city data.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        region_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        name:
+          type: string
+          maxLength: 100
+        region:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - id
+      - name
+      - region
+      - region_name
+      - updated_at
+    Country:
+      type: object
+      description: Serializer for country data.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        name:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 10
+      required:
+      - code
+      - created_at
+      - id
+      - name
+      - updated_at
+    Operator:
+      type: object
+      description: Serializer for transport operators.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 50
+        contact_email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 20
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        managers:
+          type: array
+          items:
+            type: integer
+      required:
+      - code
+      - created_at
+      - id
+      - name
+      - updated_at
+    PaginatedBookingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
+    PaginatedBusList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bus'
+    PaginatedCityList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/City'
+    PaginatedCountryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Country'
+    PaginatedOperatorList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Operator'
+    PaginatedPaymentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+    PaginatedRegionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Region'
+    PaginatedRouteList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Route'
+    PaginatedStationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Station'
+    PaginatedTripList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trip'
+    PaginatedTripSeatList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TripSeat'
+    PatchedBus:
+      type: object
+      description: Serializer for buses.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        operator_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        plate_number:
+          type: string
+          maxLength: 50
+        bus_number:
+          type: string
+          nullable: true
+          maxLength: 50
+        bus_type:
+          $ref: '#/components/schemas/BusTypeEnum'
+        capacity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        manufacture_year:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        operator:
+          type: string
+          format: uuid
+    PatchedOperator:
+      type: object
+      description: Serializer for transport operators.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 50
+        contact_email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 20
+        website:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        managers:
+          type: array
+          items:
+            type: integer
+    PatchedTrip:
+      type: object
+      description: Serializer for trips.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        route_code:
+          type: string
+          readOnly: true
+        operator_name:
+          type: string
+          readOnly: true
+        bus_plate_number:
+          type: string
+          readOnly: true
+        occupancy_rate:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        trip_code:
+          type: string
+          maxLength: 100
+        departure_time:
+          type: string
+          format: date-time
+        arrival_time:
+          type: string
+          format: date-time
+        base_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/TripStatusEnum'
+        available_seats:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        booked_seats_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        day_of_week:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        month:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        holiday_flag:
+          type: boolean
+        route:
+          type: string
+          format: uuid
+        operator:
+          type: string
+          format: uuid
+        bus:
+          type: string
+          format: uuid
+    Payment:
+      type: object
+      description: Serializer for payment records.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        booking_reference:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        payment_reference:
+          type: string
+          maxLength: 100
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        payer_phone:
+          type: string
+          nullable: true
+          maxLength: 30
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        failure_reason:
+          type: string
+          nullable: true
+        external_reference:
+          type: string
+          nullable: true
+          maxLength: 255
+        gateway_response:
+          nullable: true
+        checkout_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        mock_session_token:
+          type: string
+          nullable: true
+          maxLength: 100
+        booking:
+          type: string
+          format: uuid
+      required:
+      - amount
+      - booking
+      - booking_reference
+      - created_at
+      - id
+      - payment_method
+      - payment_reference
+      - updated_at
+    PaymentMethodEnum:
+      enum:
+      - mpesa
+      - airtel
+      - tigo
+      - halopesa
+      - card
+      - bank
+      - selcom
+      - mock
+      type: string
+      description: |-
+        * `mpesa` - M-Pesa
+        * `airtel` - Airtel Money
+        * `tigo` - Tigo Pesa
+        * `halopesa` - HaloPesa
+        * `card` - Card
+        * `bank` - Bank Transfer
+        * `selcom` - Selcom
+        * `mock` - Mock Payment
+    PaymentStatusEnum:
+      enum:
+      - pending
+      - completed
+      - failed
+      - cancelled
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `completed` - Completed
+        * `failed` - Failed
+        * `cancelled` - Cancelled
+    Region:
+      type: object
+      description: Serializer for region data.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        country_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        name:
+          type: string
+          maxLength: 100
+        country:
+          type: string
+          format: uuid
+      required:
+      - country
+      - country_name
+      - created_at
+      - id
+      - name
+      - updated_at
+    RoleEnum:
+      enum:
+      - superadmin
+      - admin
+      - operator_manager
+      - customer
+      type: string
+      description: |-
+        * `superadmin` - Super Admin
+        * `admin` - Admin
+        * `operator_manager` - Operator Manager
+        * `customer` - Customer
+    Route:
+      type: object
+      description: Serializer for routes.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        origin_station_name:
+          type: string
+          readOnly: true
+        destination_station_name:
+          type: string
+          readOnly: true
+        origin_city_name:
+          type: string
+          readOnly: true
+        destination_city_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        distance_km:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        estimated_duration_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        route_code:
+          type: string
+          maxLength: 100
+        notes:
+          type: string
+          nullable: true
+        origin_station:
+          type: string
+          format: uuid
+        destination_station:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - destination_city_name
+      - destination_station
+      - destination_station_name
+      - estimated_duration_minutes
+      - id
+      - origin_city_name
+      - origin_station
+      - origin_station_name
+      - route_code
+      - updated_at
+    Station:
+      type: object
+      description: Serializer for station data.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        city_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        name:
+          type: string
+          maxLength: 255
+        address:
+          type: string
+          nullable: true
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        city:
+          type: string
+          format: uuid
+      required:
+      - city
+      - city_name
+      - created_at
+      - id
+      - name
+      - updated_at
+    Ticket:
+      type: object
+      description: |-
+        Ticket confirmation serializer.
+
+        This serializer is designed for the frontend ticket confirmation page.
+
+        It includes:
+        - passenger details
+        - trip details
+        - seat details
+        - payment status
+        - QR payload data
+
+        The frontend can use qr_payload to generate a QR code image.
+      properties:
+        booking_id:
+          type: string
+          format: uuid
+          readOnly: true
+        booking_reference:
+          type: string
+          maxLength: 50
+        booking_status:
+          $ref: '#/components/schemas/BookingStatusEnum'
+        payment_success:
+          type: boolean
+        passenger_name:
+          type: string
+          maxLength: 255
+        passenger_phone:
+          type: string
+          maxLength: 20
+        passenger_email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        fare_paid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        trip_code:
+          type: string
+          readOnly: true
+        route_code:
+          type: string
+          readOnly: true
+        operator_name:
+          type: string
+          readOnly: true
+        bus_plate_number:
+          type: string
+          readOnly: true
+        seat_number:
+          type: string
+          readOnly: true
+        departure_time:
+          type: string
+          format: date-time
+          readOnly: true
+        arrival_time:
+          type: string
+          format: date-time
+          readOnly: true
+        booked_at:
+          type: string
+          format: date-time
+          readOnly: true
+        qr_payload:
+          type: string
+          readOnly: true
+        verification_url:
+          type: string
+          readOnly: true
+      required:
+      - amount
+      - arrival_time
+      - booked_at
+      - booking_id
+      - booking_reference
+      - bus_plate_number
+      - departure_time
+      - operator_name
+      - passenger_name
+      - passenger_phone
+      - qr_payload
+      - route_code
+      - seat_number
+      - trip_code
+      - verification_url
+    TicketVerification:
+      type: object
+      description: |-
+        Serializer for ticket verification response.
+
+        This is useful for operators/admins when scanning a ticket QR code.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        booking_reference:
+          type: string
+          maxLength: 50
+        booking_status:
+          $ref: '#/components/schemas/BookingStatusEnum'
+        payment_success:
+          type: boolean
+        passenger_name:
+          type: string
+          maxLength: 255
+        passenger_phone:
+          type: string
+          maxLength: 20
+        trip_code:
+          type: string
+          readOnly: true
+        route_code:
+          type: string
+          readOnly: true
+        operator_name:
+          type: string
+          readOnly: true
+        bus_plate_number:
+          type: string
+          readOnly: true
+        seat_number:
+          type: string
+          readOnly: true
+        departure_time:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - booking_reference
+      - bus_plate_number
+      - departure_time
+      - id
+      - operator_name
+      - passenger_name
+      - passenger_phone
+      - route_code
+      - seat_number
+      - trip_code
+    Trip:
+      type: object
+      description: Serializer for trips.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        route_code:
+          type: string
+          readOnly: true
+        operator_name:
+          type: string
+          readOnly: true
+        bus_plate_number:
+          type: string
+          readOnly: true
+        occupancy_rate:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        trip_code:
+          type: string
+          maxLength: 100
+        departure_time:
+          type: string
+          format: date-time
+        arrival_time:
+          type: string
+          format: date-time
+        base_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/TripStatusEnum'
+        available_seats:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        booked_seats_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        day_of_week:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        month:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        holiday_flag:
+          type: boolean
+        route:
+          type: string
+          format: uuid
+        operator:
+          type: string
+          format: uuid
+        bus:
+          type: string
+          format: uuid
+      required:
+      - arrival_time
+      - available_seats
+      - base_price
+      - bus
+      - bus_plate_number
+      - created_at
+      - departure_time
+      - id
+      - occupancy_rate
+      - operator
+      - operator_name
+      - route
+      - route_code
+      - trip_code
+      - updated_at
+    TripSeat:
+      type: object
+      description: Serializer for trip seat records.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+        seat_number:
+          type: string
+          maxLength: 20
+        status:
+          $ref: '#/components/schemas/TripSeatStatusEnum'
+        reserved_until:
+          type: string
+          format: date-time
+          nullable: true
+        trip:
+          type: string
+          format: uuid
+      required:
+      - created_at
+      - id
+      - seat_number
+      - trip
+      - updated_at
+    TripSeatStatusEnum:
+      enum:
+      - available
+      - reserved
+      - booked
+      - blocked
+      type: string
+      description: |-
+        * `available` - Available
+        * `reserved` - Reserved
+        * `booked` - Booked
+        * `blocked` - Blocked
+    TripStatusEnum:
+      enum:
+      - scheduled
+      - boarding
+      - departed
+      - arrived
+      - cancelled
+      - delayed
+      - full
+      type: string
+      description: |-
+        * `scheduled` - Scheduled
+        * `boarding` - Boarding
+        * `departed` - Departed
+        * `arrived` - Arrived
+        * `cancelled` - Cancelled
+        * `delayed` - Delayed
+        * `full` - Full
+    UserProfile:
+      type: object
+      description: Serializer for the authenticated user's profile.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 20
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        full_name:
+          type: string
+          readOnly: true
+        gender:
+          type: string
+          readOnly: true
+        date_of_birth:
+          type: string
+          format: date
+          readOnly: true
+        national_id:
+          type: string
+          readOnly: true
+      required:
+      - date_of_birth
+      - email
+      - full_name
+      - gender
+      - id
+      - national_id
+      - username
+    UserRegistration:
+      type: object
+      description: Serializer for registering a new user.
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 6
+        phone_number:
+          type: string
+        full_name:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+      - username
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
