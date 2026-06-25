@@ -75,7 +75,7 @@ export const RecommendationsSection = () => {
 
   const selectableCityNames = useMemo(() => {
     if (!hasBackendLocations) return [];
-    return [...backendCities.map((c) => c.name)].sort((a, b) => a.localeCompare(b));
+    return [...new Set(backendCities.map((c) => c.name))].sort((a, b) => a.localeCompare(b));
   }, [backendCities, hasBackendLocations]);
 
   const detectedCityNormalized = useMemo(

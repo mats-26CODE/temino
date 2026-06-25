@@ -3,46 +3,36 @@ import Link from "next/link";
 import { APP_NAME } from "@/constants/values";
 import { cn } from "@/lib/utils";
 
-/** Icon is sized to sit closer to the Cherry Bomb wordmark cap height (not tiny vs text). */
+// temino_logo.png is a horizontal wordmark (~1091x278). We constrain the height
+// and let the width follow the aspect ratio.
 const SIZE = {
-  xs: { imgPx: 36, imgClass: "size-10", text: "text-xl leading-none" },
-  sm: { imgPx: 44, imgClass: "size-12", text: "text-3xl leading-none" },
-  md: { imgPx: 56, imgClass: "size-14", text: "text-4xl leading-none" },
-  lg: { imgPx: 64, imgClass: "size-16", text: "text-5xl leading-none" },
+  xs: "h-7 w-auto",
+  sm: "h-9 w-auto",
+  md: "h-11 w-auto",
+  lg: "h-14 w-auto",
 } as const;
 
 interface LogoProps {
   className?: string;
   size?: keyof typeof SIZE;
-  variant?: "full" | "icon";
   href?: string;
 }
 
-const Logo = ({ className, size = "md", variant = "full", href = "/" }: LogoProps) => {
-  const sizes = SIZE[size];
-  const wordmark = APP_NAME.toLowerCase();
-
+const Logo = ({ className, size = "md", href = "/" }: LogoProps) => {
   return (
     <Link
       href={href}
-      className={cn("inline-flex items-center gap-2", className)}
+      className={cn("inline-flex shrink-0 items-center", className)}
       aria-label={APP_NAME}
     >
-      <span className="relative inline-flex shrink-0 overflow-hidden rounded-md">
-        <Image
-          src="/temino_logo_icon.png"
-          alt="Logo"
-          width={sizes.imgPx}
-          height={sizes.imgPx}
-          className={cn("object-contain", sizes.imgClass)}
-          priority={false}
-        />
-      </span>
-      {variant === "full" && (
-        <span className={cn("font-wordmark text-primary -mt-1 uppercase", sizes.text)}>
-          {wordmark}
-        </span>
-      )}
+      <Image
+        src="/temino_logo.png"
+        alt={APP_NAME}
+        width={1091}
+        height={278}
+        className={cn("object-contain", SIZE[size])}
+        priority={false}
+      />
     </Link>
   );
 };

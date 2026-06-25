@@ -57,7 +57,7 @@ const NavBar = () => {
         {/* Left: brand */}
         <div className="flex shrink-0 items-center">
           <Logo size="xs" className="md:hidden" />
-          <Logo size="sm" className="hidden md:inline-flex" />
+          <Logo size="xs" className="hidden md:inline-flex" />
         </div>
 
         {/* Center: mode tabs (landing only on desktop) */}

@@ -62,11 +62,6 @@ paths:
   /api/bookings/:
     get:
       operationId: bookings_list
-      description: |-
-        Returns all bookings.
-
-        Useful for admin/testing for now.
-        Later this should be restricted to admin/operator roles.
       parameters:
       - name: page
         required: false
@@ -89,13 +84,6 @@ paths:
   /api/bookings/{booking_id}/ticket/:
     get:
       operationId: bookings_ticket_retrieve
-      description: |-
-        Returns final ticket/confirmation details for a booking.
-
-        Frontend use case:
-        GET /api/bookings/{booking_id}/ticket/
-
-        This endpoint only returns ticket details after payment success.
       parameters:
       - in: path
         name: booking_id
@@ -115,10 +103,134 @@ paths:
               schema:
                 $ref: '#/components/schemas/Ticket'
           description: ''
+  /api/bookings/cancellation/approve/:
+    post:
+      operationId: bookings_cancellation_approve_create
+      description: |-
+        Approve a cancellation request.
+
+        Important:
+        This does not process payment gateway refunds.
+        It only records admin approval and flags refund review.
+      tags:
+      - bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/bookings/cancellation/reject/:
+    post:
+      operationId: bookings_cancellation_reject_create
+      description: Reject a cancellation request.
+      tags:
+      - bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/bookings/cancellation/request/:
+    post:
+      operationId: bookings_cancellation_request_create
+      description: |-
+        Submit a cancellation request.
+
+        V1 policy:
+        - Pending unpaid bookings are cancelled directly and seat is released.
+        - Confirmed paid bookings are marked for manual cancellation/refund review.
+        - No automatic refund is processed.
+      tags:
+      - bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/bookings/check-in/:
+    post:
+      operationId: bookings_check_in_create
+      tags:
+      - bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketVerification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TicketVerification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TicketVerification'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketVerification'
+          description: ''
   /api/bookings/create/:
     post:
       operationId: bookings_create_create
-      description: Creates a new booking and reserves the selected seat temporarily.
+      description: |-
+        Creates a new booking and reserves the selected seat temporarily.
+
+        Important:
+        The client does not control ticket price.
+        Booking amount is calculated from trip.base_price inside create_booking().
       tags:
       - bookings
       requestBody:
@@ -146,7 +258,6 @@ paths:
   /api/bookings/mine/:
     get:
       operationId: bookings_mine_list
-      description: Returns bookings belonging to the authenticated user.
       parameters:
       - name: page
         required: false
@@ -165,19 +276,62 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedBookingList'
           description: ''
+  /api/bookings/operator/:
+    get:
+      operationId: bookings_operator_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - bookings
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookingList'
+          description: ''
+  /api/bookings/refund/mark-processed/:
+    post:
+      operationId: bookings_refund_mark_processed_create
+      description: |-
+        Mark a refund as manually processed.
+
+        Important:
+        This does not call Selcom or move money.
+        It only records that finance/admin completed the refund outside Temino.
+      tags:
+      - bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
   /api/bookings/ticket/verify/:
     get:
       operationId: bookings_ticket_verify_retrieve
-      description: |-
-        Verify a ticket using booking reference from QR code.
-
-        Example:
-        GET /api/bookings/ticket/verify/?code=BK-12345678
-
-        Frontend/operator use case:
-        - scan QR code
-        - extract booking reference or open verification URL
-        - verify ticket status
       tags:
       - bookings
       security:
@@ -190,10 +344,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/TicketVerification'
           description: ''
+  /api/integrations/webhooks/operator/:
+    post:
+      operationId: integrations_webhooks_operator_create
+      description: |-
+        Receive webhook events from external operators.
+
+        Event examples:
+        - trip.updated
+        - seat.updated
+      tags:
+      - integrations
+      responses:
+        '200':
+          description: No response body
   /api/locations/cities/:
     get:
       operationId: locations_cities_list
-      description: Returns a list of active cities.
+      description: |-
+        Legacy endpoint.
+
+        Kept temporarily for backward compatibility.
+        New Temino workflows should not depend on cities.
       parameters:
       - name: page
         required: false
@@ -262,7 +434,7 @@ paths:
   /api/locations/stations/:
     get:
       operationId: locations_stations_list
-      description: Returns a list of active stations.
+      description: Returns a list of active stations/stops/terminals.
       parameters:
       - name: page
         required: false
@@ -607,14 +779,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/Operator'
           description: ''
+  /api/operators/dashboard/:
+    get:
+      operationId: operators_dashboard_retrieve
+      description: |-
+        Operator dashboard endpoint.
+
+        Staff/admin:
+        - sees the first operator by default for MVP dashboard testing.
+
+        Operator manager:
+        - sees only the first operator they manage.
+
+        Future improvement:
+        - support operator_id query parameter for staff/admin.
+      tags:
+      - operators
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/payments/:
     get:
       operationId: payments_list
-      description: |-
-        Return all payment records.
-
-        Useful for testing/admin during MVP stage.
-        Later this should be restricted.
       parameters:
       - name: page
         required: false
@@ -626,7 +814,6 @@ paths:
       - payments
       security:
       - tokenAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -637,10 +824,6 @@ paths:
   /api/payments/complete/:
     post:
       operationId: payments_complete_create
-      description: |-
-        Complete a local payment.
-
-        Mainly used for internal/manual testing.
       tags:
       - payments
       requestBody:
@@ -657,7 +840,6 @@ paths:
         required: true
       security:
       - tokenAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -668,7 +850,6 @@ paths:
   /api/payments/create/:
     post:
       operationId: payments_create_create
-      description: Create a local payment record for an existing booking.
       tags:
       - payments
       requestBody:
@@ -696,7 +877,6 @@ paths:
   /api/payments/fail/:
     post:
       operationId: payments_fail_create
-      description: Mark payment as failed.
       tags:
       - payments
       requestBody:
@@ -713,7 +893,6 @@ paths:
         required: true
       security:
       - tokenAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -724,7 +903,6 @@ paths:
   /api/payments/mock/fail/:
     post:
       operationId: payments_mock_fail_create
-      description: Simulate failed mock payment.
       tags:
       - payments
       requestBody:
@@ -752,7 +930,6 @@ paths:
   /api/payments/mock/pending/:
     post:
       operationId: payments_mock_pending_create
-      description: Simulate pending mock payment.
       tags:
       - payments
       requestBody:
@@ -780,7 +957,6 @@ paths:
   /api/payments/mock/session/:
     post:
       operationId: payments_mock_session_create
-      description: Create mock payment session for development.
       tags:
       - payments
       requestBody:
@@ -808,7 +984,6 @@ paths:
   /api/payments/mock/success/:
     post:
       operationId: payments_mock_success_create
-      description: Simulate successful mock payment.
       tags:
       - payments
       requestBody:
@@ -836,7 +1011,6 @@ paths:
   /api/payments/selcom/checkout/:
     post:
       operationId: payments_selcom_checkout_create
-      description: Initiate Selcom checkout for a booking.
       tags:
       - payments
       requestBody:
@@ -864,7 +1038,42 @@ paths:
   /api/payments/selcom/verify/:
     post:
       operationId: payments_selcom_verify_create
-      description: Verify Selcom payment status from server side.
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/payments/selcom/webhook/:
+    post:
+      operationId: payments_selcom_webhook_create
+      description: |-
+        Selcom webhook endpoint.
+
+        Selcom calls this endpoint after payment events.
+
+        Important:
+        - Temino does not trust webhook success blindly.
+        - The webhook is used only to locate the local Payment.
+        - Temino then verifies payment server-side through Selcom before confirming booking.
       tags:
       - payments
       requestBody:
@@ -917,10 +1126,64 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedRouteList'
           description: ''
+  /api/settlements/:
+    get:
+      operationId: settlements_list
+      description: List settlement records visible to the current user.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - settlements
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSettlementList'
+          description: ''
+  /api/settlements/operator-analytics/:
+    get:
+      operationId: settlements_operator_analytics_retrieve
+      description: |-
+        Revenue analytics grouped by operator.
+
+        Staff/admin:
+        - sees all operators
+
+        Operator manager:
+        - sees only managed operators
+      tags:
+      - settlements
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/settlements/summary/:
+    get:
+      operationId: settlements_summary_retrieve
+      description: Return financial summary for settlements visible to current user.
+      tags:
+      - settlements
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/trips/:
     get:
       operationId: trips_list
-      description: Returns a list of active trips.
+      description: |-
+        Public trip list.
+
+        Shows only active future trips that customers can still book.
       parameters:
       - name: page
         required: false
@@ -943,12 +1206,6 @@ paths:
   /api/trips/{id}/:
     get:
       operationId: trips_retrieve
-      description: |-
-        Retrieve or update a specific trip.
-
-        Object-level access:
-        - admin/superadmin can access any trip
-        - operator_manager can access only trips for their own operator
       parameters:
       - in: path
         name: id
@@ -969,12 +1226,6 @@ paths:
           description: ''
     put:
       operationId: trips_update
-      description: |-
-        Retrieve or update a specific trip.
-
-        Object-level access:
-        - admin/superadmin can access any trip
-        - operator_manager can access only trips for their own operator
       parameters:
       - in: path
         name: id
@@ -1007,12 +1258,6 @@ paths:
           description: ''
     patch:
       operationId: trips_partial_update
-      description: |-
-        Retrieve or update a specific trip.
-
-        Object-level access:
-        - admin/superadmin can access any trip
-        - operator_manager can access only trips for their own operator
       parameters:
       - in: path
         name: id
@@ -1042,10 +1287,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/Trip'
           description: ''
+  /api/trips/{trip_id}/manifest/:
+    get:
+      operationId: trips_manifest_retrieve
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - trips
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/trips/{trip_id}/seats/:
     get:
       operationId: trips_seats_list
-      description: Returns seats for a specific trip.
       parameters:
       - name: page
         required: false
@@ -1071,18 +1332,73 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedTripSeatList'
           description: ''
+  /api/trips/{trip_id}/status/:
+    patch:
+      operationId: trips_status_partial_update
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - trips
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/trips/create/:
     post:
       operationId: trips_create_create
-      description: |-
-        Create a new trip.
-
-        Seats are auto-generated because of Step 9 logic.
-
-        Allowed roles:
-        - operator_manager
-        - admin
-        - superadmin
+      tags:
+      - trips
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Trip'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+  /api/trips/my-trips/:
+    get:
+      operationId: trips_my_trips_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - trips
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTripList'
+          description: ''
+  /api/trips/my-trips/create/:
+    post:
+      operationId: trips_my_trips_create_create
       tags:
       - trips
       requestBody:
@@ -1109,24 +1425,6 @@ paths:
   /api/trips/search/:
     get:
       operationId: trips_search_list
-      description: |-
-        Search endpoint for trips.
-
-        Supported query parameters:
-        - origin_station
-        - destination_station
-        - departure_date
-        - operator
-        - status
-        - min_price
-        - max_price
-        - ordering
-
-        Example:
-        /api/trips/search/?origin_station=<uuid>&destination_station=<uuid>&departure_date=2026-04-08
-        /api/trips/search/?operator=<uuid>&min_price=30000&max_price=50000
-        /api/trips/search/?ordering=base_price
-        /api/trips/search/?ordering=-departure_time
       parameters:
       - name: page
         required: false
@@ -1136,6 +1434,1446 @@ paths:
           type: integer
       tags:
       - trips
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTripList'
+          description: ''
+  /api/v1/accounts/login/:
+    post:
+      operationId: v1_accounts_login_create
+      description: Log in an existing user and return an auth token.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/accounts/profile/:
+    get:
+      operationId: v1_accounts_profile_retrieve
+      description: Return the authenticated user's profile.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/v1/accounts/register/:
+    post:
+      operationId: v1_accounts_register_create
+      description: Register a new user.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /api/v1/bookings/:
+    get:
+      operationId: v1_bookings_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookingList'
+          description: ''
+  /api/v1/bookings/{booking_id}/ticket/:
+    get:
+      operationId: v1_bookings_ticket_retrieve
+      parameters:
+      - in: path
+        name: booking_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+          description: ''
+  /api/v1/bookings/cancellation/approve/:
+    post:
+      operationId: v1_bookings_cancellation_approve_create
+      description: |-
+        Approve a cancellation request.
+
+        Important:
+        This does not process payment gateway refunds.
+        It only records admin approval and flags refund review.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/v1/bookings/cancellation/reject/:
+    post:
+      operationId: v1_bookings_cancellation_reject_create
+      description: Reject a cancellation request.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/v1/bookings/cancellation/request/:
+    post:
+      operationId: v1_bookings_cancellation_request_create
+      description: |-
+        Submit a cancellation request.
+
+        V1 policy:
+        - Pending unpaid bookings are cancelled directly and seat is released.
+        - Confirmed paid bookings are marked for manual cancellation/refund review.
+        - No automatic refund is processed.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/v1/bookings/check-in/:
+    post:
+      operationId: v1_bookings_check_in_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketVerification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TicketVerification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TicketVerification'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketVerification'
+          description: ''
+  /api/v1/bookings/create/:
+    post:
+      operationId: v1_bookings_create_create
+      description: |-
+        Creates a new booking and reserves the selected seat temporarily.
+
+        Important:
+        The client does not control ticket price.
+        Booking amount is calculated from trip.base_price inside create_booking().
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/v1/bookings/mine/:
+    get:
+      operationId: v1_bookings_mine_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookingList'
+          description: ''
+  /api/v1/bookings/operator/:
+    get:
+      operationId: v1_bookings_operator_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookingList'
+          description: ''
+  /api/v1/bookings/refund/mark-processed/:
+    post:
+      operationId: v1_bookings_refund_mark_processed_create
+      description: |-
+        Mark a refund as manually processed.
+
+        Important:
+        This does not call Selcom or move money.
+        It only records that finance/admin completed the refund outside Temino.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/v1/bookings/ticket/verify/:
+    get:
+      operationId: v1_bookings_ticket_verify_retrieve
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketVerification'
+          description: ''
+  /api/v1/integrations/webhooks/operator/:
+    post:
+      operationId: v1_integrations_webhooks_operator_create
+      description: |-
+        Receive webhook events from external operators.
+
+        Event examples:
+        - trip.updated
+        - seat.updated
+      tags:
+      - v1
+      responses:
+        '200':
+          description: No response body
+  /api/v1/locations/cities/:
+    get:
+      operationId: v1_locations_cities_list
+      description: |-
+        Legacy endpoint.
+
+        Kept temporarily for backward compatibility.
+        New Temino workflows should not depend on cities.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCityList'
+          description: ''
+  /api/v1/locations/countries/:
+    get:
+      operationId: v1_locations_countries_list
+      description: Returns a list of active countries.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCountryList'
+          description: ''
+  /api/v1/locations/regions/:
+    get:
+      operationId: v1_locations_regions_list
+      description: Returns a list of active regions.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRegionList'
+          description: ''
+  /api/v1/locations/stations/:
+    get:
+      operationId: v1_locations_stations_list
+      description: Returns a list of active stations/stops/terminals.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStationList'
+          description: ''
+  /api/v1/operators/:
+    get:
+      operationId: v1_operators_list
+      description: |-
+        Public list of active operators.
+
+        Supported query parameters:
+        - name
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOperatorList'
+          description: ''
+  /api/v1/operators/{id}/:
+    get:
+      operationId: v1_operators_retrieve
+      description: |-
+        Retrieve or update a specific operator.
+
+        Object-level access:
+        - admin/superadmin can access any operator
+        - operator_manager can access only their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+    put:
+      operationId: v1_operators_update
+      description: |-
+        Retrieve or update a specific operator.
+
+        Object-level access:
+        - admin/superadmin can access any operator
+        - operator_manager can access only their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Operator'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+    patch:
+      operationId: v1_operators_partial_update
+      description: |-
+        Retrieve or update a specific operator.
+
+        Object-level access:
+        - admin/superadmin can access any operator
+        - operator_manager can access only their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+  /api/v1/operators/buses/:
+    get:
+      operationId: v1_operators_buses_list
+      description: |-
+        Public list of active buses.
+
+        Supported query parameters:
+        - operator
+        - bus_type
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBusList'
+          description: ''
+  /api/v1/operators/buses/{id}/:
+    get:
+      operationId: v1_operators_buses_retrieve
+      description: |-
+        Retrieve or update a specific bus.
+
+        Object-level access:
+        - admin/superadmin can access any bus
+        - operator_manager can access only buses for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bus'
+          description: ''
+    put:
+      operationId: v1_operators_buses_update
+      description: |-
+        Retrieve or update a specific bus.
+
+        Object-level access:
+        - admin/superadmin can access any bus
+        - operator_manager can access only buses for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Bus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Bus'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bus'
+          description: ''
+    patch:
+      operationId: v1_operators_buses_partial_update
+      description: |-
+        Retrieve or update a specific bus.
+
+        Object-level access:
+        - admin/superadmin can access any bus
+        - operator_manager can access only buses for their own operator
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBus'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bus'
+          description: ''
+  /api/v1/operators/buses/create/:
+    post:
+      operationId: v1_operators_buses_create_create
+      description: |-
+        Create a new bus.
+
+        Allowed roles:
+        - operator_manager
+        - admin
+        - superadmin
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Bus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Bus'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bus'
+          description: ''
+  /api/v1/operators/create/:
+    post:
+      operationId: v1_operators_create_create
+      description: |-
+        Create a new operator.
+
+        Allowed roles:
+        - operator_manager
+        - admin
+        - superadmin
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Operator'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+  /api/v1/operators/dashboard/:
+    get:
+      operationId: v1_operators_dashboard_retrieve
+      description: |-
+        Operator dashboard endpoint.
+
+        Staff/admin:
+        - sees the first operator by default for MVP dashboard testing.
+
+        Operator manager:
+        - sees only the first operator they manage.
+
+        Future improvement:
+        - support operator_id query parameter for staff/admin.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/payments/:
+    get:
+      operationId: v1_payments_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPaymentList'
+          description: ''
+  /api/v1/payments/complete/:
+    post:
+      operationId: v1_payments_complete_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/create/:
+    post:
+      operationId: v1_payments_create_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/fail/:
+    post:
+      operationId: v1_payments_fail_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/mock/fail/:
+    post:
+      operationId: v1_payments_mock_fail_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/mock/pending/:
+    post:
+      operationId: v1_payments_mock_pending_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/mock/session/:
+    post:
+      operationId: v1_payments_mock_session_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/mock/success/:
+    post:
+      operationId: v1_payments_mock_success_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/selcom/checkout/:
+    post:
+      operationId: v1_payments_selcom_checkout_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/selcom/verify/:
+    post:
+      operationId: v1_payments_selcom_verify_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/payments/selcom/webhook/:
+    post:
+      operationId: v1_payments_selcom_webhook_create
+      description: |-
+        Selcom webhook endpoint.
+
+        Selcom calls this endpoint after payment events.
+
+        Important:
+        - Temino does not trust webhook success blindly.
+        - The webhook is used only to locate the local Payment.
+        - Temino then verifies payment server-side through Selcom before confirming booking.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Payment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+  /api/v1/routes/:
+    get:
+      operationId: v1_routes_list
+      description: |-
+        Returns a list of active routes.
+
+        Supported query parameters:
+        - origin_station
+        - destination_station
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRouteList'
+          description: ''
+  /api/v1/settlements/:
+    get:
+      operationId: v1_settlements_list
+      description: List settlement records visible to the current user.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSettlementList'
+          description: ''
+  /api/v1/settlements/operator-analytics/:
+    get:
+      operationId: v1_settlements_operator_analytics_retrieve
+      description: |-
+        Revenue analytics grouped by operator.
+
+        Staff/admin:
+        - sees all operators
+
+        Operator manager:
+        - sees only managed operators
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/settlements/summary/:
+    get:
+      operationId: v1_settlements_summary_retrieve
+      description: Return financial summary for settlements visible to current user.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/trips/:
+    get:
+      operationId: v1_trips_list
+      description: |-
+        Public trip list.
+
+        Shows only active future trips that customers can still book.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTripList'
+          description: ''
+  /api/v1/trips/{id}/:
+    get:
+      operationId: v1_trips_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+    put:
+      operationId: v1_trips_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Trip'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+    patch:
+      operationId: v1_trips_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTrip'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTrip'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTrip'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+  /api/v1/trips/{trip_id}/manifest/:
+    get:
+      operationId: v1_trips_manifest_retrieve
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/trips/{trip_id}/seats/:
+    get:
+      operationId: v1_trips_seats_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: path
+        name: trip_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTripSeatList'
+          description: ''
+  /api/v1/trips/{trip_id}/status/:
+    patch:
+      operationId: v1_trips_status_partial_update
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/trips/create/:
+    post:
+      operationId: v1_trips_create_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Trip'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+  /api/v1/trips/my-trips/:
+    get:
+      operationId: v1_trips_my_trips_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTripList'
+          description: ''
+  /api/v1/trips/my-trips/create/:
+    post:
+      operationId: v1_trips_my_trips_create_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Trip'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Trip'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+          description: ''
+  /api/v1/trips/search/:
+    get:
+      operationId: v1_trips_search_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
       security:
       - tokenAuth: []
       - {}
@@ -1207,6 +2945,41 @@ components:
           type: boolean
         cancellation_flag:
           type: boolean
+        cancellation_requested:
+          type: boolean
+        cancellation_requested_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancellation_reason:
+          type: string
+          nullable: true
+        cancellation_review_status:
+          $ref: '#/components/schemas/CancellationReviewStatusEnum'
+        cancellation_reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancellation_admin_notes:
+          type: string
+          nullable: true
+        refund_required:
+          type: boolean
+          description: True when finance/admin should review a possible refund manually.
+        refund_processed:
+          type: boolean
+          description: True only after refund has been manually processed outside
+            Temino.
+        refund_processed_at:
+          type: string
+          format: date-time
+          nullable: true
+        checked_in:
+          type: boolean
+        checked_in_at:
+          type: string
+          format: date-time
+          nullable: true
         booked_at:
           type: string
           format: date-time
@@ -1228,6 +3001,9 @@ components:
         seat:
           type: string
           format: uuid
+          nullable: true
+        cancellation_reviewed_by:
+          type: integer
           nullable: true
       required:
       - amount
@@ -1331,9 +3107,25 @@ components:
         * `vip` - VIP
         * `mini_bus` - Mini Bus
         * `coaster` - Coaster
+    CancellationReviewStatusEnum:
+      enum:
+      - not_requested
+      - requested
+      - approved
+      - rejected
+      type: string
+      description: |-
+        * `not_requested` - Not Requested
+        * `requested` - Requested
+        * `approved` - Approved
+        * `rejected` - Rejected
     City:
       type: object
-      description: Serializer for city data.
+      description: |-
+        Legacy serializer.
+
+        Kept temporarily for backward compatibility.
+        New station onboarding should not depend on cities.
       properties:
         id:
           type: string
@@ -1395,6 +3187,14 @@ components:
       - id
       - name
       - updated_at
+    EnvironmentEnum:
+      enum:
+      - sandbox
+      - live
+      type: string
+      description: |-
+        * `sandbox` - Sandbox
+        * `live` - Live
     Operator:
       type: object
       description: Serializer for transport operators.
@@ -1630,6 +3430,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Route'
+    PaginatedSettlementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Settlement'
     PaginatedStationList:
       type: object
       required:
@@ -1835,6 +3658,8 @@ components:
           type: integer
           maximum: 2147483647
           minimum: 0
+          nullable: true
+          description: Leave blank to use the selected bus capacity.
         booked_seats_count:
           type: integer
           maximum: 2147483647
@@ -1851,6 +3676,20 @@ components:
           nullable: true
         holiday_flag:
           type: boolean
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        external_trip_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_operator_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        last_synced_at:
+          type: string
+          format: date-time
+          nullable: true
         route:
           type: string
           format: uuid
@@ -1860,6 +3699,10 @@ components:
         bus:
           type: string
           format: uuid
+        integration:
+          type: string
+          format: uuid
+          nullable: true
     Payment:
       type: object
       description: Serializer for payment records.
@@ -1907,6 +3750,24 @@ components:
           type: string
           nullable: true
           maxLength: 255
+        gateway_transaction_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        provider_status_code:
+          type: string
+          nullable: true
+          maxLength: 100
+        callback_received_at:
+          type: string
+          format: date-time
+          nullable: true
+        idempotency_key:
+          type: string
+          nullable: true
+          maxLength: 255
+        environment:
+          $ref: '#/components/schemas/EnvironmentEnum'
         gateway_response:
           nullable: true
         checkout_url:
@@ -2010,7 +3871,11 @@ components:
         * `customer` - Customer
     Route:
       type: object
-      description: Serializer for routes.
+      description: |-
+        Serializer for routes.
+
+        Routes are station-to-station.
+        Stations now belong directly to regions.
       properties:
         id:
           type: string
@@ -2022,10 +3887,10 @@ components:
         destination_station_name:
           type: string
           readOnly: true
-        origin_city_name:
+        origin_region_name:
           type: string
           readOnly: true
-        destination_city_name:
+        destination_region_name:
           type: string
           readOnly: true
         created_at:
@@ -2061,25 +3926,119 @@ components:
           format: uuid
       required:
       - created_at
-      - destination_city_name
+      - destination_region_name
       - destination_station
       - destination_station_name
       - estimated_duration_minutes
       - id
-      - origin_city_name
+      - origin_region_name
       - origin_station
       - origin_station_name
       - route_code
       - updated_at
-    Station:
+    Settlement:
       type: object
-      description: Serializer for station data.
+      description: |-
+        Settlement list serializer.
+
+        Used for operator/admin financial dashboard views.
       properties:
         id:
           type: string
           format: uuid
           readOnly: true
-        city_name:
+        booking:
+          type: string
+          format: uuid
+        booking_reference:
+          type: string
+          readOnly: true
+        passenger_name:
+          type: string
+          readOnly: true
+        operator:
+          type: string
+          format: uuid
+        operator_name:
+          type: string
+          readOnly: true
+        trip_code:
+          type: string
+          readOnly: true
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        commission_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        commission_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        operator_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/SettlementStatusEnum'
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - booking
+      - booking_reference
+      - commission_amount
+      - commission_percentage
+      - created_at
+      - id
+      - operator
+      - operator_amount
+      - operator_name
+      - passenger_name
+      - total_amount
+      - trip_code
+    SettlementStatusEnum:
+      enum:
+      - pending
+      - paid
+      - failed
+      - cancelled
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `paid` - Paid
+        * `failed` - Failed
+        * `cancelled` - Cancelled
+    SourceEnum:
+      enum:
+      - dashboard
+      - api
+      type: string
+      description: |-
+        * `dashboard` - Dashboard
+        * `api` - External API
+    Station:
+      type: object
+      description: |-
+        Serializer for station data.
+
+        Stations now belong directly to regions.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        region_name:
+          type: string
+          readOnly: true
+        country_name:
           type: string
           readOnly: true
         created_at:
@@ -2095,6 +4054,8 @@ components:
         name:
           type: string
           maxLength: 255
+        station_type:
+          $ref: '#/components/schemas/StationTypeEnum'
         address:
           type: string
           nullable: true
@@ -2108,31 +4069,32 @@ components:
           format: decimal
           pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
           nullable: true
-        city:
+        region:
           type: string
           format: uuid
       required:
-      - city
-      - city_name
+      - country_name
       - created_at
       - id
       - name
+      - region
+      - region_name
       - updated_at
+    StationTypeEnum:
+      enum:
+      - terminal
+      - stop
+      - pickup_point
+      - dropoff_point
+      type: string
+      description: |-
+        * `terminal` - Terminal
+        * `stop` - Stop
+        * `pickup_point` - Pickup Point
+        * `dropoff_point` - Drop-off Point
     Ticket:
       type: object
-      description: |-
-        Ticket confirmation serializer.
-
-        This serializer is designed for the frontend ticket confirmation page.
-
-        It includes:
-        - passenger details
-        - trip details
-        - seat details
-        - payment status
-        - QR payload data
-
-        The frontend can use qr_payload to generate a QR code image.
+      description: Ticket confirmation serializer.
       properties:
         booking_id:
           type: string
@@ -2145,6 +4107,12 @@ components:
           $ref: '#/components/schemas/BookingStatusEnum'
         payment_success:
           type: boolean
+        checked_in:
+          type: boolean
+        checked_in_at:
+          type: string
+          format: date-time
+          nullable: true
         passenger_name:
           type: string
           maxLength: 255
@@ -2215,10 +4183,7 @@ components:
       - verification_url
     TicketVerification:
       type: object
-      description: |-
-        Serializer for ticket verification response.
-
-        This is useful for operators/admins when scanning a ticket QR code.
+      description: Serializer for ticket verification response.
       properties:
         id:
           type: string
@@ -2231,6 +4196,12 @@ components:
           $ref: '#/components/schemas/BookingStatusEnum'
         payment_success:
           type: boolean
+        checked_in:
+          type: boolean
+        checked_in_at:
+          type: string
+          format: date-time
+          nullable: true
         passenger_name:
           type: string
           maxLength: 255
@@ -2316,6 +4287,8 @@ components:
           type: integer
           maximum: 2147483647
           minimum: 0
+          nullable: true
+          description: Leave blank to use the selected bus capacity.
         booked_seats_count:
           type: integer
           maximum: 2147483647
@@ -2332,6 +4305,20 @@ components:
           nullable: true
         holiday_flag:
           type: boolean
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        external_trip_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_operator_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        last_synced_at:
+          type: string
+          format: date-time
+          nullable: true
         route:
           type: string
           format: uuid
@@ -2341,9 +4328,12 @@ components:
         bus:
           type: string
           format: uuid
+        integration:
+          type: string
+          format: uuid
+          nullable: true
       required:
       - arrival_time
-      - available_seats
       - base_price
       - bus
       - bus_plate_number
@@ -2378,12 +4368,21 @@ components:
         seat_number:
           type: string
           maxLength: 20
+        seat_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Numeric order used for correct seat sorting.
         status:
           $ref: '#/components/schemas/TripSeatStatusEnum'
         reserved_until:
           type: string
           format: date-time
           nullable: true
+        external_seat_id:
+          type: string
+          nullable: true
+          maxLength: 255
         trip:
           type: string
           format: uuid

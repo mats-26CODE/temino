@@ -56,7 +56,7 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
 
   const cityNames = useMemo(() => {
     const fromApi = apiCities?.map((c) => c.name) ?? [];
-    return [...fromApi].sort((a, b) => a.localeCompare(b));
+    return [...new Set(fromApi)].sort((a, b) => a.localeCompare(b));
   }, [apiCities]);
 
   const citySet = useMemo(() => new Set(cityNames), [cityNames]);
@@ -144,7 +144,7 @@ export const SearchBar = ({ variant = "hero", className }: SearchBarProps) => {
   return (
     <Card
       className={cn(
-        "ring-border/50 w-full gap-0 overflow-hidden rounded-xl px-2 py-0.5 shadow-xs ring-1 md:rounded-2xl md:px-3 md:py-1",
+        "ring-border/50 bg-background w-full gap-0 overflow-hidden rounded-xl px-2 py-0.5 shadow-xs ring-1 md:rounded-2xl md:px-3 md:py-1",
         className,
       )}
     >
